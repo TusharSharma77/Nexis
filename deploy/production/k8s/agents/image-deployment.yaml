@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-image
+  namespace: nexis
+  labels: { app: agent-image, agent: image }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: agent-image } }
+  template:
+    metadata:
+      labels: { app: agent-image, agent: image }
+    spec:
+      serviceAccountName: haole-app
+      containers:
+        - name: agent
+          image: ghcr.io/your-org/haole-agent:0.1.0
+          env:
+            - { name: AGENT_KIND, value: image }
+          envFrom:
+            - configMapRef: { name: haole-config }
+            - secretRef: { name: haole-secrets }
+          resources:
+            requests: { cpu: "300m", memory: "768Mi" }
+            limits:   { cpu: "2000m", memory: "1.5Gi" }
+      terminationGracePeriodSeconds: 60
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: agent-image-hpa, namespace: nexis }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: agent-image }
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }

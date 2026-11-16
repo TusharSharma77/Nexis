@@ -1,0 +1,157 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev, "codex/**", "feat/**"]
+  pull_request:
+    branches: [main, dev]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-ci:
+    name: Backend — lint, types, migrations, tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: nexis
+          POSTGRES_PASSWORD: nexis_dev
+          POSTGRES_DB: nexis
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7.2-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://nexis:nexis_dev@localhost:5432/nexis
+      REDIS_URL: redis://localhost:6379/0
+      LITELLM_MOCK: "true"
+      ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.29"
+          enable-cache: true
+      - name: Install the locked Python workspace
+        run: uv sync --locked --all-packages --all-extras
+      - name: Ruff
+        working-directory: backend
+        run: ../.venv/bin/ruff check .
+      - name: Compile Python modules
+        working-directory: backend
+        run: ../.venv/bin/python -m compileall -q app ../agents/agents ../agents/mcp_servers
+      - name: Type-check public backend contracts
+        working-directory: backend
+        run: ../.venv/bin/mypy app/schemas
+      - name: Upgrade a fresh database
+        working-directory: backend
+        run: ../.venv/bin/alembic upgrade head
+      - name: Bootstrap canonical Skills
+        working-directory: backend
+        run: ../.venv/bin/python scripts/bootstrap-skills.py
+      - name: Run backend tests
+        working-directory: backend
+        run: ../.venv/bin/pytest tests -q
+
+  agents-ci:
+    name: Agents — lint, types, imports, tests
+    runs-on: ubuntu-latest
+    env:
+      LITELLM_MOCK: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.29"
+          enable-cache: true
+      - name: Install the locked Python workspace
+        run: uv sync --locked --all-packages --all-extras
+      - name: Ruff
+        working-directory: agents
+        run: ../.venv/bin/ruff check .
+      - name: Compile Python modules
+        run: .venv/bin/python -m compileall -q agents backend/app
+      - name: Type-check Agent transport contracts
+        run: >-
+          .venv/bin/mypy --config-file agents/pyproject.toml --ignore-missing-imports
+          agents/agents/_common/protocol.py
+          agents/agents/orchestrator_agent/planner/plan_schema.py
+      - name: Import every Agent and MCP service
+        run: .venv/bin/python backend/scripts/check-contracts.py --imports-only
+      - name: Run Agent tests
+        run: .venv/bin/python -m pytest agents/tests -q
+      - name: Run no-key Agent handler contracts
+        run: .venv/bin/python -m pytest test/test_agent_task_handlers.py -q
+
+  frontend-ci:
+    name: Frontend — install, lint, types, tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install frozen frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        working-directory: frontend
+        run: pnpm lint
+      - name: Type-check
+        working-directory: frontend
+        run: pnpm typecheck
+      - name: Unit tests
+        working-directory: frontend
+        run: pnpm test
+      - name: Production build
+        working-directory: frontend
+        run: pnpm build
+      - name: Install Playwright Chromium
+        working-directory: frontend
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Browser end-to-end tests
+        working-directory: frontend
+        run: pnpm test:e2e
+
+  contract-ci:
+    name: Architecture and cross-language contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.29"
+          enable-cache: true
+      - name: Install the locked Python workspace
+        run: uv sync --locked --all-packages --all-extras
+      - name: Check Agent, Skill, MCP, event, and frontend contracts
+        run: .venv/bin/python backend/scripts/check-contracts.py

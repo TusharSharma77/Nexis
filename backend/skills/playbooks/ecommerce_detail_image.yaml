@@ -1,0 +1,99 @@
+skill_id: ecommerce_detail_image
+name: 电商详情图制作
+version: "2.0"
+description: 在专业群中基于商品图和卖点生成经用户确认的电商详情长图
+domain: image
+scenario: ecommerce_detail
+creator: platform
+visibility: public
+
+keywords:
+  - 电商详情图
+  - 商品详情
+  - 长图
+  - 详情页
+anti_signals:
+  - 视频
+  - 海报
+
+inputs_schema:
+  - name: 商品图
+    type: image_ref
+    required: true
+    clarification_form: image_upload
+  - name: 卖点
+    type: text
+    required: true
+  - name: 受众
+    type: enum
+    required: true
+    options: [城市妈妈, 都市白领, Z 世代, 银发族, 都覆盖]
+    clarification_form: single_select
+  - name: 风格
+    type: enum
+    required: true
+    options: [自然质朴, 简约现代, 暖色家居, 科技感, 朴朴风, 自定义]
+    clarification_form: image_compare
+
+workflow:
+  - step_id: copy_writing
+    agent: agent_1
+    task_type: long_writing
+    timeout: 30
+    prompt_template: |
+      根据商品卖点 "{{卖点}}"、目标受众 "{{受众}}" 和风格 "{{风格}}"，
+      为电商详情图写 5 段中文图文文案。第一段为主标题与利益点，
+      后四段依次说明核心卖点、使用场景、品质证明和行动引导。
+      每段 30-50 字，避免未经提供的功效承诺。
+    output_format:
+      type: structured
+    routing_hints:
+      primary: deepseek-v4-pro
+      no_fallback: true
+
+  - step_id: segment_images
+    agent: agent_3
+    task_type: batch_generate
+    depends_on: [copy_writing]
+    timeout: 120
+    inputs:
+      reference_images: ["{{商品图}}"]
+    parameters:
+      count: 5
+      image_set_type: ecommerce
+      image_specs:
+        - {prompt: "{{copy_writing.output[0]}}", size: "2K"}
+        - {prompt: "{{copy_writing.output[1]}}", size: "2K"}
+        - {prompt: "{{copy_writing.output[2]}}", size: "2K"}
+        - {prompt: "{{copy_writing.output[3]}}", size: "2K"}
+        - {prompt: "{{copy_writing.output[4]}}", size: "2K"}
+      confirmation:
+        model: doubao-seedream-4-0-250828
+        provider: 火山方舟
+        estimated_cost_cny_per_image: 0.20
+    routing_hints:
+      provider: ark_seedream
+      model: doubao-seedream-4-0-250828
+      no_retry: true
+      no_fallback: true
+    output_format:
+      type: image_collection
+    hitl_gate:
+      type: image_generation_confirmation
+      phase: before_dispatch
+      actions: [approve, cancel]
+
+  - step_id: long_concat
+    agent: agent_2
+    task_type: image_concat_long
+    depends_on: [segment_images]
+    timeout: 60
+    inputs:
+      images: "{{segment_images.output}}"
+    output_format:
+      type: image
+
+delivery:
+  primary_artifact: long_concat
+  bundled_artifacts: [copy_writing, segment_images]
+

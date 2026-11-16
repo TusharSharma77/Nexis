@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: nexis
+namePrefix: ""
+
+resources:
+  - namespace.yaml
+  - config/configmap.yaml
+  - datastore/postgres.yaml
+  - datastore/redis.yaml
+  - datastore/qdrant.yaml
+  - litellm/deployment.yaml
+  - backend/deployment.yaml
+  - agents/text-deployment.yaml
+  - agents/document-deployment.yaml
+  - agents/image-deployment.yaml
+  - agents/av-deployment.yaml
+  - mcp/mcp-deployments.yaml
+  - frontend/deployment.yaml
+  - heartbeat-consumer.yaml
+  - jobs/db-migrate.yaml
+  - ingress.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: nexis
+
+images:
+  - name: ghcr.io/your-org/nexis-backend
+    newTag: 0.1.0
+  - name: ghcr.io/your-org/haole-agent
+    newTag: 0.1.0
+  - name: ghcr.io/your-org/haole-mcp
+    newTag: 0.1.0
+  - name: ghcr.io/your-org/nexis-frontend
+    newTag: 0.1.0
+  - name: ghcr.io/your-org/haole-celery-video
+    newTag: 0.1.0
