@@ -1,7 +1,6 @@
 'use client';
 
-// Agent 产出的"任务卡片"消息(对齐 frontend_001 视觉)
-// v4 §23 #211-218:卡片操作 [下载] [追问] [改一下]
+// Task Card deliverable component with action menu [Download] [Follow-up] [Refine]
 import { useState } from 'react';
 import {
   ArrowRight,
@@ -25,9 +24,9 @@ const ICONS = {
 };
 
 const REVISE_OPTIONS: { key: string; label: string }[] = [
-  { key: 'style', label: '改风格' },
-  { key: 'content', label: '改内容' },
-  { key: 'length', label: '改长度' },
+  { key: 'style', label: 'Revise Tone' },
+  { key: 'content', label: 'Revise Content' },
+  { key: 'length', label: 'Adjust Length' },
 ];
 
 export function TaskCard({
@@ -58,7 +57,6 @@ export function TaskCard({
         preview: card.title,
         role: 'ceo_assistant',
       });
-      // 滚动到输入框
       requestAnimationFrame(() => {
         document.querySelector('textarea')?.focus();
       });
@@ -133,7 +131,7 @@ export function TaskCard({
               rel="noreferrer"
               className="flex flex-1 items-center justify-center gap-1 py-1.5 text-[11px] text-wechat-fg hover:bg-white"
             >
-              <Download size={11} /> 下载
+              <Download size={11} /> Download
             </a>
           )}
           <button
@@ -141,7 +139,7 @@ export function TaskCard({
             onClick={onAskFollowUp ?? defaultAskFollowUp}
             className="flex flex-1 items-center justify-center gap-1 py-1.5 text-[11px] text-wechat-fg hover:bg-white"
           >
-            <MessageCircle size={11} /> 追问
+            <MessageCircle size={11} /> Follow Up
           </button>
           <button
             type="button"
@@ -151,7 +149,7 @@ export function TaskCard({
               reviseOpen ? 'bg-white text-wechat-green' : 'text-wechat-fg',
             )}
           >
-            <Wand2 size={11} /> 改一下
+            <Wand2 size={11} /> Refine
           </button>
         </div>
       )}

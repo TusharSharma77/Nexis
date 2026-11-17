@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-// 高亮文本里的 @xxx
+// Highlights @mentions in message text
 export function highlightMentions(text: string): ReactNode {
   return text.split(/(@\S+)/g).map((part, i) =>
     part.startsWith('@') ? (

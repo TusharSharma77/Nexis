@@ -1,6 +1,6 @@
 'use client';
 
-// 登录页(v4 §38 #332-335)— 短信验证码登录
+// Login page — phone / SMS OTP sign-in
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/stores/user';
@@ -42,8 +42,8 @@ export default function LoginPage() {
 
   async function sendCode() {
     setErr(null);
-    if (!/^\d{11}$/.test(phone)) {
-      setErr('请输入 11 位手机号');
+    if (!/^\d{10,11}$/.test(phone)) {
+      setErr('Please enter a valid phone number');
       return;
     }
     setLoading(true);
@@ -54,7 +54,7 @@ export default function LoginPage() {
       setStep('code');
       startCounter();
     } catch (e) {
-      setErr(`发送失败: ${e instanceof Error ? e.message : 'unknown'}`);
+      setErr(`Failed to send code: ${e instanceof Error ? e.message : 'unknown'}`);
     } finally {
       setLoading(false);
     }
@@ -63,23 +63,23 @@ export default function LoginPage() {
   async function login() {
     setErr(null);
     if (!/^\d{6}$/.test(code)) {
-      setErr('请输入 6 位验证码');
+      setErr('Please enter the 6-digit verification code');
       return;
     }
     setLoading(true);
     try {
       if (USE_MOCK) {
-        setAuth({ id: 'mock-user', phone, nickname: `用户${phone.slice(-4)}` }, 'mock-token');
+        setAuth({ id: 'mock-user', phone, nickname: `User_${phone.slice(-4)}` }, 'mock-token');
       } else {
         const data = await loginWithSms(phone, code);
         setAuth(
-          { id: data.user_id, phone, nickname: `用户${phone.slice(-4)}` },
+          { id: data.user_id, phone, nickname: `User_${phone.slice(-4)}` },
           data.access_token,
         );
       }
       router.push('/');
     } catch (e) {
-      setErr(`登录失败: ${e instanceof Error ? e.message : 'unknown'}`);
+      setErr(`Login failed: ${e instanceof Error ? e.message : 'unknown'}`);
     } finally {
       setLoading(false);
     }
@@ -89,21 +89,21 @@ export default function LoginPage() {
     <main className="grid min-h-screen place-items-center bg-wechat-bg">
       <div className="w-[360px] rounded-md border border-wechat-line bg-white p-6 shadow-sm">
         <h1 className="mb-1 text-center text-[17px] font-semibold text-wechat-fg">
-          登录「Nexis」
+          Sign In to Nexis
         </h1>
         <p className="mb-4 text-center text-[12px] text-wechat-mute">
-          你的专属 AI 工作团队
+          Your Dedicated Multi-Agent AI Team
         </p>
 
         {step === 'phone' ? (
           <>
-            <label htmlFor="phone" className="mb-1 block text-[12px] text-wechat-sub">手机号</label>
+            <label htmlFor="phone" className="mb-1 block text-[12px] text-wechat-sub">Phone Number</label>
             <input
               id="phone"
               autoFocus
               value={phone}
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-              placeholder="13800138000"
+              placeholder="Enter phone number (dev: 13800000000)"
               maxLength={11}
               className="mb-3 w-full rounded-sm border border-wechat-line bg-white px-2 py-1.5 text-[13px] outline-none focus:border-wechat-green"
             />
@@ -113,20 +113,20 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full rounded-sm bg-wechat-green py-2 text-[13px] text-white hover:bg-[#06AE56] disabled:opacity-50"
             >
-              {loading ? '发送中…' : '获取验证码'}
+              {loading ? 'Sending…' : 'Get Verification Code'}
             </button>
           </>
         ) : (
           <>
             <label htmlFor="code" className="mb-1 block text-[12px] text-wechat-sub">
-              验证码已发送至 {phone}
+              Code sent to {phone} (Dev OTP: 123456)
             </label>
             <input
               id="code"
               autoFocus
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-              placeholder="6 位验证码"
+              placeholder="6-digit code (123456)"
               maxLength={6}
               className="mb-3 w-full rounded-sm border border-wechat-line bg-white px-2 py-1.5 text-[13px] outline-none focus:border-wechat-green"
             />
@@ -136,7 +136,7 @@ export default function LoginPage() {
                 onClick={() => setStep('phone')}
                 className="text-wechat-sub hover:text-wechat-fg"
               >
-                ← 改手机号
+                ← Change Number
               </button>
               <button
                 type="button"
@@ -144,7 +144,7 @@ export default function LoginPage() {
                 onClick={sendCode}
                 className="text-wechat-green disabled:text-wechat-mute"
               >
-                {counter > 0 ? `${counter}s 后重发` : '重新发送'}
+                {counter > 0 ? `Resend in ${counter}s` : 'Resend Code'}
               </button>
             </div>
             <button
@@ -153,7 +153,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full rounded-sm bg-wechat-green py-2 text-[13px] text-white hover:bg-[#06AE56] disabled:opacity-50"
             >
-              {loading ? '登录中…' : '登录'}
+              {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </>
         )}
@@ -165,7 +165,7 @@ export default function LoginPage() {
         )}
 
         <p className="mt-5 text-center text-[10px] text-wechat-mute">
-          登录即同意《用户协议》《隐私政策》
+          By signing in, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
     </main>

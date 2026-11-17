@@ -30,9 +30,9 @@ interface Props {
 }
 
 const TAB_LABEL: Record<MentionItem['kind'], string> = {
-  agent: '员工',
-  material: '文件',
-  prompt: '提示词',
+  agent: 'Agents',
+  material: 'Files',
+  prompt: 'Prompts',
 };
 
 export function MentionPopover({
@@ -150,7 +150,7 @@ export function MentionPopover({
       <ul ref={listRef} className="max-h-[220px] overflow-y-auto py-1">
         {items.length === 0 && (
           <li className="px-3 py-3 text-center text-[11px] text-wechat-mute">
-            没有匹配项
+            No matches found
           </li>
         )}
         {items.map((it, idx) => (
@@ -192,10 +192,10 @@ export function MentionPopover({
       </ul>
 
       <div className="flex items-center gap-2 border-t border-wechat-line px-2 py-1 text-[10px] text-wechat-mute">
-        <span>↑↓ 选择</span>
-        <span>Tab 换类</span>
-        <span>Enter 插入</span>
-        <span>Esc 关闭</span>
+        <span>↑↓ Navigate</span>
+        <span>Tab Category</span>
+        <span>Enter Select</span>
+        <span>Esc Close</span>
       </div>
     </div>
   );

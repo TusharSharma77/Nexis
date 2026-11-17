@@ -49,7 +49,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       .then((session) => {
         if (!active) return;
         setAuth(
-          { id: session.user_id, phone: 'local-guest', nickname: '本地访客' },
+          { id: session.user_id, phone: 'local-guest', nickname: 'Guest' },
           session.access_token,
         );
       })
@@ -98,7 +98,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           type="button"
           onClick={() => setLeftOpen(true)}
           className="rounded p-1.5 text-wechat-fg hover:bg-neutral-100"
-          aria-label="打开导航"
+          aria-label="Open navigation"
         >
           <Menu size={16} />
         </button>
@@ -110,7 +110,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             type="button"
             onClick={() => setRightOpen(true)}
             className="rounded p-1.5 text-wechat-fg hover:bg-neutral-100"
-            aria-label="打开执行流"
+            aria-label="Open execution stream"
           >
             <PanelRight size={16} />
           </button>
@@ -119,13 +119,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       </header>
 
-      {/* 桌面侧栏 */}
+      {/* Desktop Sidebar */}
       <div className="hidden md:contents">
         <AppSidebar />
         <ChatList />
       </div>
 
-      {/* 移动端左侧抽屉 */}
+      {/* Mobile Left Drawer */}
       {leftOpen && (
         <Drawer side="left" onClose={() => setLeftOpen(false)}>
           <div className="flex h-full">
@@ -137,14 +137,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <main className="flex min-w-0 flex-1 overflow-hidden pt-10 md:pt-0">{children}</main>
 
-      {/* 桌面右侧 AgentPanel */}
+      {/* Desktop Right AgentPanel */}
       {showAgentPanel && (
         <aside className="hidden w-[400px] flex-shrink-0 md:block">
           <AgentPanel />
         </aside>
       )}
 
-      {/* 移动端右侧抽屉 */}
+      {/* Mobile Right Drawer */}
       {rightOpen && (
         <Drawer side="right" onClose={() => setRightOpen(false)}>
           <div className="h-full w-[320px] max-w-[80vw]">
@@ -182,7 +182,7 @@ function Drawer({
           type="button"
           onClick={onClose}
           className="absolute right-2 top-2 rounded p-1 text-wechat-mute hover:bg-neutral-100"
-          aria-label="关闭"
+          aria-label="Close"
         >
           <X size={14} />
         </button>

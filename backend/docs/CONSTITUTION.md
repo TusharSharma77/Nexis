@@ -1,50 +1,50 @@
 # CONSTITUTION.md
 
-> **位置**:目标仓库 `docs/CONSTITUTION.md`
-> **面向**:有人想偏离原则 / 决策有冲突时
-> **关系**:CLAUDE.md(操作指令)→ ARCHITECTURE.md(技术细节)→ **CONSTITUTION.md(为什么这么决策 + 何时可以变 + 冲突如何裁决)**
+> **Location**: Target warehouse `docs/CONSTITUTION.md`
+> **For**: When someone wants to deviate from principles/decisions are conflicting
+> **Relationship**: CLAUDE.md (operation instructions) → ARCHITECTURE.md (technical details) → **CONSTITUTION.md (why the decision is made + when it can be changed + how to resolve conflicts)**
 >
-> **版本**:v3.0(2026-05-05,对齐 ADR-001-rev / ADR-013 / ADR-014 / ADR-015 / ADR-016)
+> **Version**: v3.0 (2026-05-05, aligned ADR-001-rev / ADR-013 / ADR-014 / ADR-015 / ADR-016)
 >
-> **v3.0 核心变更**:
-> - 🔄 ADR-001 → ADR-001-rev:Agent 编号反向(2=文档/3=图/4=影音)
-> - 🔄 ADR-008 废弃 → ADR-014:三模式同群切换
-> - 🔄 ADR-012 废弃:V1 hero = 短视频 + 电商详情图(回归)
-> - ✨ ADR-013 / 015 / 016 新增
+> **v3.0 core changes**:
+> - 🔄 ADR-001 → ADR-001-rev: Agent number reverse (2=document/3=picture/4=video)
+> - 🔄 ADR-008 Abandoned → ADR-014: Three-mode same-group switching
+> - 🔄 ADR-012 Abandoned: V1 hero = short video + e-commerce details (return)
+> - ✨ ADR-013 / 015 / 016 New
 
 ---
 
-## 1. 这份文档存在的目的
+## 1. The purpose of this document
 
-**不是教你做事**(那是 CLAUDE.md),**是说明为什么必须这样做**,以及**遇到冲突时怎么裁决**。
+**It's not about teaching you to do things** (that's CLAUDE.md), **it's about explaining why you must do what you do** and **how to resolve conflicts**.
 
-任何想"绕过"或"修改" 16 条原则 / 12 条 ADR 的提议,先回到这份文件读一遍 → 仍认为该改 → 走治理流程。
+Any proposal that wants to "bypass" or "modify" the 16 principles/12 ADRs should first go back to this document and read it again → still think it should be changed → go through the governance process.
 
 ---
 
-## 2. 16 条铁律详解
+## 2. Detailed explanation of the 16 iron rules
 
-### 2.1 单一调度者(原则 1)
+### 2.1 Single Scheduler (Principle 1)
 
-主编排 Agent 是系统**唯一调度方**。Agent 1-4 之间:
+The main orchestration agent is the **only dispatcher** of the system. Between Agent 1-4:
 
-- 不互相 @
-- 不直接对话
-- 不直连 HTTP/RPC
-- 不跨调 handler
+- not mutual @
+- No direct conversation
+- No direct connection to HTTP/RPC
+- Do not cross-tune handlers
 
-**为什么**:
+**Why**:
 
-- 主编排是"全局视图"——只有它知道任务整体进度、能正确分配中断、能记账(成本/耗时/质量)
-- 避免环形依赖、死锁
-- 可观测性:所有 step 状态都在 LangGraph state 里,前端右栏才能正确流式展示
-- 故障隔离:某 Agent 挂了不会通过跨调链传染
+- The main orchestrator is the "global view" - only it knows the overall progress of the task, can correctly allocate interruptions, and can keep accounts (cost/time-consuming/quality)
+- Avoid circular dependencies and deadlocks
+- Observability: All step states are in LangGraph state, so that the right column of the front end can be displayed correctly.
+- Fault isolation: If an Agent fails, it will not be infected through cross-modulation chain
 
-**违反场景**:有人想让 Agent 4 做 PPT 时直接调 Agent 1 写大纲。
+**Violation Scenario**: Someone wants Agent 4 to directly call Agent 1 to write the outline when doing PPT.
 
-**正确做法**:在 Skill YAML 显式拆为 `ppt_outline (agent_1) → ppt_images (agent_2) → ppt_assemble (agent_4)` 三个 step。
+**Correct approach**: Explicitly split the Skill YAML into three steps: `ppt_outline (agent_1) → ppt_images (agent_2) → ppt_assemble (agent_4)`.
 
-### 2.2 Agent 编号锁定(原则 2 / ADR-001-rev,v3.0 反向锁定)
+### 2.2 Agent number lock (Principle 2 / ADR-001-rev, v3.0 reverse lock)
 
 ```
 Agent 1 = 文字       = agent_tasks:text
@@ -53,25 +53,25 @@ Agent 3 = 设计师     = agent_tasks:image
 Agent 4 = 影音师     = agent_tasks:av
 ```
 
-**为什么这个映射(v3.0 终版)**:
+**Why this mapping (v3.0 final version)**:
 
-- 与产品方最终版「Nexis」产品描述一致
-- 数字递进对应"内容创作链路"(文字 → 文档 → 图 → 影音,从轻到重)
-- 短视频和电商详情图场景的 Agent 对应已修正(产品方拍板)
+- Consistent with the product description of the final version of "Nexis" from the product side
+- The digital progression corresponds to the "content creation link" (text → document → image → video, from light to heavy)
+- The Agent correspondence between short video and e-commerce detail picture scenes has been corrected (decided by the product side)
 
-**历史变更**:
+**Historical changes**:
 
-- v1.x 实现指南曾用 Agent 2=文档 / Agent 3=图 / Agent 4=视频
-- v2.0 ADR-001 改为 Agent 2=图 / Agent 3=影音 / Agent 4=文档
-- v3.0 ADR-001-rev 又改回 Agent 2=文档 / Agent 3=图 / Agent 4=影音(产品方最终版)
+- v1.x Implementation Guide used Agent 2=Documentation/Agent 3=Picture/Agent 4=Video
+- v2.0 ADR-001 changed to Agent 2=Picture/Agent 3=Video/Agent 4=Documentation
+- v3.0 ADR-001-rev changed back to Agent 2=Document/Agent 3=Picture/Agent 4=Video (final version from the product side)
 
-**v3.0 锁定后不再变更**。
+**v3.0 will not change after being locked**.
 
-### 2.3 跨能力步骤显式拆步(原则 3 / ADR-002)
+### 2.3 Explicit separation of cross-capability steps (Principle 3 / ADR-002)
 
-Agent **不能调** `call_other_agent`。代码里 `call_other_agent` 函数永久 `NotImplementedError`,作为防御性编程。
+Agent **cannot call** `call_other_agent`. The `call_other_agent` function in the code permanently raises `NotImplementedError`, as defensive programming.
 
-**正确范式**:
+**Correct paradigm**:
 
 ```yaml
 # ❌ 错误
@@ -96,9 +96,9 @@ Agent **不能调** `call_other_agent`。代码里 `call_other_agent` 函数永�
     images: "{{ppt_images.output}}"
 ```
 
-### 2.4 State 用引用(原则 4)
+### 2.4 State uses references (Principle 4)
 
-LangGraph state 里所有产物只存:
+All products in LangGraph state only exist:
 
 ```python
 class Artifact:
@@ -108,24 +108,24 @@ class Artifact:
     metadata: dict
 ```
 
-**绝不存**:
-- `full_content: str`(几 MB 文本)
-- `image_bytes: bytes`(几 MB 图)
-- `transcript_full: str`(几 KB)
+**Never Save**:
+- `full_content: str` (a few MB of text)
+- `image_bytes: bytes` (a few MB images)
+- `transcript_full: str` (a few KB)
 
-**为什么**:
+**Why**:
 
-- LangGraph PostgreSQL checkpointer 每次 update 都序列化 state——存全文导致每秒 GB 级写入
-- Agent 跨进程传 state 时序列化爆炸
-- 调试时打印 state 看不清重点
+- LangGraph PostgreSQL checkpointer serializes state for each update - storing the full text results in GB-level writes per second
+- Serialization explosion when Agent transfers state across processes
+- Printing state during debugging makes it difficult to see the key points
 
-**例外**:< 1KB 的小文本(如 brief 字段、用户偏好标量)可直接存。
+**Exception**: Small text < 1KB (such as brief field, user preference scalar) can be stored directly.
 
-### 2.5 长任务异步(原则 5)
+### 2.5 Long task asynchronous (Principle 5)
 
-视频合成 5-10 分钟,不能阻塞 Agent 进程。
+Video synthesis takes 5-10 minutes and cannot block the Agent process.
 
-**实现**:
+**accomplish**:
 
 ```python
 async def video_compose_handler(task, model):
@@ -133,32 +133,32 @@ async def video_compose_handler(task, model):
     return AgentResult(status="pending_external", external_workflow_id=workflow_id)
 ```
 
-Celery 完成后调用 `notify_langgraph_complete(callback_queue, ...)`,主编排 LangGraph 监听该队列恢复任务。
+After Celery is completed, it calls `notify_langgraph_complete(callback_queue, ...)`, and the main orchestrator LangGraph monitors the queue recovery task.
 
-**判断标准**:任何 handler 预期 > 60 秒的,必须走 Celery。
+**Judgment Criteria**: Any handler expected to take > 60 seconds must use Celery.
 
-### 2.6 永远选择题(原则 6)
+### 2.6 Always multiple choice questions (Principle 6)
 
-澄清不让用户填空。4 种形式:
+Clarification does not allow users to fill in the blanks. 4 forms:
 
-1. 单字段单选(3-4 按钮)
-2. 多字段合并(2-3 字段一次问完)
-3. 图片对比(3 张样图)
-4. 内容版本对比(实时调 Agent 1 生成 3 版本)
+1. Single field radio selection (3-4 buttons)
+2. Multi-field merging (2-3 fields are asked at one time)
+3. Picture comparison (3 sample pictures)
+4. Content version comparison (real-time adjustment of Agent 1 to generate version 3)
 
-**约束**:
-- 每字段必有 default(超时 60 秒自动用 default)
-- 不超过 5 轮(超过用 default 兜底)
-- 偏好 confidence ≥ 1.0 自动套用,不再问
+**constraint**:
+- Each field must have a default (default will be used automatically after 60 seconds of timeout)
+- No more than 5 rounds (use default for more than 5 rounds)
+- Preference confidence ≥ 1.0 is automatically applied, no more questions asked
 
-**违反例**:让用户写一段话描述风格 — ❌
-**正确例**:[简约] [自然] [科技感] [自定义] — ✓
+**Violation Example**: Ask the user to write a paragraph describing the style — ❌
+**Correct example**: [Simple] [Natural] [Technological sense] [Customized] — ✓
 
-### 2.7 LLM 走 LiteLLM(原则 7 / ADR-007)
+### 2.7 LLM goes LiteLLM (Principle 7 / ADR-007)
 
-**禁止**:`import openai` / `import anthropic` 等 SDK 直接调模型。
+**Forbidden**: `import openai` / `import anthropic` and other SDKs directly adjust the model.
 
-**统一入口**:`from app.router import complete`
+**Unified entrance**:`from app.router import complete`
 
 ```python
 response = await router.complete(
@@ -169,18 +169,18 @@ response = await router.complete(
 )
 ```
 
-**为什么**:
+**Why**:
 
-- 主备模型自动切换(健康度感知)
-- 统一成本审计(LiteLLM dashboard)
-- 统一限流
-- 不需要每个调用点处理 4 种模型 SDK 差异
+- Automatic switching between active and standby models (health awareness)
+- Unified cost audit (LiteLLM dashboard)
+- Unified current limit
+- No need to handle 4 model SDK differences per call point
 
-**例外**:Embedding 模型(BGE-M3 自托管)走自己的 HTTP API,**不**走 LiteLLM。
+**Exception**: Embedding models (BGE-M3 self-hosted) use their own HTTP API, not LiteLLM.
 
-### 2.8 Prompt 不内联(原则 8)
+### 2.8 Prompt is not inlined (Principle 8)
 
-**禁止**:
+**prohibit**:
 
 ```python
 response = await router.complete(
@@ -188,7 +188,7 @@ response = await router.complete(
 )
 ```
 
-**正确**:
+**correct**:
 
 ```python
 from app.config.prompts import SHORT_VIDEO_SCRIPT_PROMPT
@@ -198,254 +198,254 @@ response = await router.complete(
 )
 ```
 
-**为什么**:
+**Why**:
 
-- Prompt 治理统一(版本号 + 灰度)
-- A/B test 框架可以批量替换 prompt
-- 修 prompt 走 PR review,不在业务代码里偷偷改
-- Prompt 回归测试集集中维护
+- Prompt management unified (version number + grayscale)
+- A/B test framework can replace prompts in batches
+- Fix the prompt and go through PR review instead of secretly changing the business code
+- Centralized maintenance of Prompt regression test set
 
-### 2.9 Skill YAML 是契约(原则 9)
+### 2.9 Skill YAML is a contract (Principle 9)
 
-Skill 行为变更:
+Skill behavior changes:
 
-- ✓ 改 YAML + version bump(`v1.0 → v1.1`)
-- ✗ 改 Python 代码(handler 是通用的,不针对特定 Skill)
+- ✓ Change YAML + version bump(`v1.0 → v1.1`)
+- ✗ Change the Python code (handler is universal, not specific to skills)
 
-**为什么**:
+**Why**:
 
-- 创作者能写 Skill(V1.5)而不需要改代码
-- Skill 编译结果按 `(skill_id, version)` 缓存到 Redis,version 变才重新编译
-- 灰度新版 Skill:同时上 v1.1 和 v1.0,A/B test
+- Creators can write Skills (V1.5) without changing the code
+- The Skill compilation result is cached to Redis according to `(skill_id, version)`, and is recompiled after the version is changed.
+- Grayscale new version of Skill: v1.1 and v1.0 at the same time, A/B test
 
-### 2.10 对话优先按钮(原则 10)
+### 2.10 Dialog Priority Button (Principle 10)
 
-**走总裁助理对话**:
+**Talk to the President’s Assistant**:
 
-- 创建群、改群、跨群协调
-- 订阅 Skill、查找历史
-- 系统级答疑、偏好管理
+- Create groups, change groups, and coordinate across groups
+- Subscribe to Skills, search history
+- System-level Q&A and preference management
 
-**走按钮**:
+**Go Button**:
 
-- 进入已有会话
-- 上传素材、下载产物
-- 修改个人信息、私聊 Agent
+- Enter an existing session
+- Upload materials and download products
+- Modify personal information, private chat Agent
 
-**判断标准**:涉及"组建/配置/创造"走对话;"操作具体物件"走按钮。
+**Judgment Criteria**: When it comes to "building/configuring/creating", use dialogue; "operate specific objects", use buttons.
 
-### 2.11 不为 V2 写代码(原则 11)
+### 2.11 Don’t write code for V2 (Principle 11)
 
-V1 不实现:中断 C/D 完整版(C 简化版在 V1)、Skill 创作市场(V1.5)、Agent 进修、创作者分润、多人协作群、[做同款] 按钮、语音消息(V1.5)。
+V1 does not implement: C/D full version (C simplified version in V1), Skill creation market (V1.5), Agent learning, creator profit sharing, multi-person collaboration group, [Make the same style] button, voice message (V1.5).
 
-**接口预留即可**(数据库表 / API endpoint / 配置项),不要实际逻辑。
+**The interface can be reserved** (database table / API endpoint / configuration item), no actual logic is required.
 
-**为什么**:
+**Why**:
 
-- 8 周到 V1-P0 时间紧
-- V2 功能没经过 PMF 验证,做了浪费
-- 接口预留保证 V2 升级不需要破坏性改动
+- 8 thoughtful V1-P0 time is tight
+- V2 function has not been verified by PMF, which is a waste
+- Interface reservation ensures that V2 upgrade does not require destructive changes
 
-### 2.12 失败 3 层兜底(原则 12)
+### 2.12 Failure 3 layers of cover (Principle 12)
 
-任何 LLM / 工具调用必须:
+Any LLM/tool ​​calls must:
 
-1. **重试 1-3 次**(指数退避,临时错误)
-2. **切备用模型**(LiteLLM 自动)
-3. **返回用户友好错误 + 建议下一步**
+1. **Retry 1-3 times** (exponential backoff, temporary error)
+2. **Cut backup model** (LiteLLM automatic)
+3. **Return user-friendly error + suggest next steps**
 
-**绝不允许**:
+**Never allowed**:
 
 - `except: pass`
-- 静默失败(返回 None)
-- 抛异常导致整个任务崩
+- Fail silently (return None)
+- Throwing an exception causes the entire task to crash
 
 ---
 
-### 2.13 MCP 是工具集成唯一标准(原则 13 / ADR-009)
+### 2.13 MCP is the only standard for tool integration (Principle 13 / ADR-009)
 
-详见 `docs/3_决策记录/MCP 集成方案.md`。
+See `docs/3_Decision Record/MCP Integration Solution.md` for details.
 
-**核心规则**:
+**Core Rules**:
 
-- 工具(Tavily / Playwright / FFmpeg / PIL / python-pptx 等)→ MCP server
-- 模型(GPT-Image-2 / Veo-3 / Volcengine TTS)→ LiteLLM
-- Agent handler 通过 `mcp_client.call_tool(server, tool, arguments)` 调用
-- **禁止**直接 `import tavily / from playwright import ...`(handler 里)
+- Tools (Tavily / Playwright / FFmpeg / PIL / python-pptx, etc.) → MCP server
+- Model (GPT-Image-2 / Veo-3 / Volcengine TTS) → LiteLLM
+- Agent handler is called via `mcp_client.call_tool(server, tool, arguments)`
+- **Disable** direct `import tavily / from playwright import ...` (in handler)
 
-**例外**:`mcp_servers/` 目录里的 server 实现可以直接 import 工具 SDK——它们是 MCP server 的 backend。
+**Exception**: Server implementations in the `mcp_servers/` directory can directly import the tool SDK - they are the backend of the MCP server.
 
-### 2.14 Hero 交付有 HITL gate(原则 14 / ADR-010)
+### 2.14 Hero delivered with HITL gate (Principle 14 / ADR-010)
 
-视频任务必须 3 道 gate:
+Video tasks require 3 gates:
 
-1. **脚本审核**(version_select):用户选 A/B/C 或要求重写
-2. **配图审核**(quality_review):用户挑选 / 替换 / 重生成
-3. **视频终审**(final_approval):接受 / 调整 / 回滚(中断 C)
+1. **Script review**(version_select): The user selects A/B/C or requires rewriting
+2. **Image review**(quality_review): User selection/replacement/regeneration
+3. **Video Final Approval** (final_approval): Accept / Adjust / Roll Back (Interruption C)
 
-电商详情图任务至少 1 道 gate:
+The e-commerce detail map task requires at least 1 gate:
 
-- **配图审核**:第 4 步出图后用户可重生成单张
+- **Picture review**: After the picture is generated in step 4, the user can regenerate the leaflet
 
-**V1 必须支持中断 C**(原 V2 推迟,已提前):
+**V1 must support interrupt C** (original V2 was postponed and advanced):
 
-- 用户在终审选"回到第 N 步重做"
-- 主编排:计算 affected_steps → 旧产物加版本号保留 → LangGraph 回滚 → 从 N 步重启
+- The user chooses "Go back to step N and redo" in the final review
+- Main choreography: Calculate affected_steps → Retain the old product plus version number → LangGraph rollback → Restart from N steps
 
-**为什么**:
+**Why**:
 
-- 视频生成模型成功率 70-85%,无 HITL 等于赌博
-- 重做整个 8 分钟比"回滚到第 N 步"贵 3-5 倍
-- HITL 是用户感受到"AI 团队"在替我打工的关键时刻
+- Video generation model success rate is 70-85%, no HITL equals gambling
+- Redoing the entire 8 minutes is 3-5 times more expensive than "rolling back to step N"
+- HITL is the critical moment when users feel that the "AI team" is working for them
 
-### 2.15 数据飞轮 4 类信号必沉淀(原则 15 / ADR-011)
+### 2.15 Data Flywheel Category 4 signals must be precipitated (Principle 15 / ADR-011)
 
-每个任务完成必须产生 4 类信号:
+Each task completion must generate 4 types of signals:
 
-| # | 信号 | 存储 | 用途 |
+| # | signal | storage | purpose |
 |---|------|------|------|
-| 1 | 工作流完整轨迹 | Qdrant + OSS | RAG 增强主编排意图理解 |
-| 2 | 用户偏好向量 | Postgres pgvector(256 维)| 候选选项动态排序 |
-| 3 | 失败 → Reflexion | Postgres prompt_improvement_candidates | 改进 prompt(人审)|
-| 4 | 高满意度 → Skill 草稿 | Postgres skill_drafts | 创作者飞轮(V1.5)|
+| 1 | Complete track of workflow | Qdrant + OSS | RAG enhances understanding of main orchestration intent |
+| 2 | User preference vector | Postgres pgvector (256 dimensions) | Dynamic ranking of candidate options |
+| 3 | Failed → Reflexion | Postgres prompt_improvement_candidates | Improvement prompt(human review)|
+| 4 | High Satisfaction → Skill Drafts | Postgres skill_drafts | Creator Flywheel (V1.5) |
 
-**CI 强制**:任何修改 task 完成路径的 PR 必须保留 4 类信号沉淀,否则失败。
+**CI Mandatory**: Any PR that modifies the task completion path must retain Type 4 signal precipitation, otherwise it will fail.
 
-**为什么**:
+**Why**:
 
-- 没飞轮的 AI 应用产品 3 年内被 foundation model 升级吃掉的概率 > 70%(SV CTO 评估)
-- 4 类信号都是低成本沉淀,不影响主流程
-- 飞轮一旦转动起来,产品价值持续增长
+- The probability of AI application products without a flywheel being eaten up by foundation model upgrades within 3 years is > 70% (SV CTO evaluation)
+- Type 4 signals are all low-cost deposits and do not affect the main process.
+- Once the flywheel starts spinning, product value continues to grow
 
-### 2.16 垂直优先(原则 16,v3.0:ADR-012 已废)
+### 2.16 Vertical Priority (Principle 16, v3.0: ADR-012 Obsolete)
 
-V1 hero SKU = **短视频 + 电商详情图**(产品方最终版拍板,2026-05-05)
+V1 hero SKU = **Short video + e-commerce details** (Final version decision from the product side, 2026-05-05)
 
-> ⚠️ v2.0 时代曾有 ADR-012 "V1 hero 锁定短视频",已废弃。短视频降级为 V1.5 通过 Skill 市场补齐。
+> ⚠️ There was ADR-012 "V1 hero locked short video" in the v2.0 era, which has been abandoned. The short video is downgraded to V1.5 and supplemented through the Skill Market.
 
-V1 必做的 2 个 Skill:
-- **短视频制作**(社区宣传 / 抖音投放)
-- **电商详情图制作**(SMB 商家)
+2 must-do skills for V1:
+- **Short video production** (community promotion / Douyin placement)
+- **E-commerce detail map production** (SMB merchants)
 
-V1.5 通过 Skill 市场补齐:短视频制作、海报、长文、PPT 等。
+V1.5 is supplemented through the Skill Market: short video production, posters, long articles, PPT, etc.
 
-**为什么**:
+**Why**:
 
-- 垂直产品比横向 agent 平台容易融资 / PMF
-- 短视频赛道月活 9 亿+,付费意愿强
-- 短视频是政府采购(原 V1 计划),没有自然增长引擎
-- 横向 agent 平台是红海(Manus、Coze、OpenAI Operator 等)
+- Vertical products are easier to finance than horizontal agent platforms / PMF
+- The short video track has a monthly active user base of over 900 million, with a strong willingness to pay.
+- Short videos are government procurement (original V1 plan) and have no natural growth engine
+- The horizontal agent platform is the Red Ocean (Manus, Coze, OpenAI Operator, etc.)
 
 ---
 
-## 3. ADR 索引(v3.0,生效中 12 条 + 已废 3 条)
+## 3. ADR index (v3.0, 12 items in effect + 3 items obsolete)
 
-| ID | 标题 | 状态 |
+| ID | Title | Status |
 |----|------|-----|
-| **ADR-001-rev** | **Agent 编号反向(v3.0):1=文字/2=文档/3=图/4=影音** | **生效** |
-| ~~ADR-001~~ | ~~Agent 编号 v2.0(2=图/3=影音/4=文档)~~ | 已废 |
-| ADR-002 | Agent 不主动跨调其他 Agent | 生效 |
-| ADR-003 | 主编排实现指南统一 | 生效 |
-| ADR-004 | 原理篇 / 工程篇拆分 | 生效 |
-| ADR-005-rev | 音频归 Agent 4 影音师(v3.0)| 生效 |
-| ADR-006 | Brief 防抖批量更新策略 | 生效 |
-| ADR-007 | 模型路由分两层(L1/L2)| 生效 |
-| ~~ADR-008~~ | ~~讨论群/工作群两种独立群~~ | 已废,由 ADR-014 取代 |
-| ADR-009 | MCP 协议作为工具集成唯一标准 | 生效 |
-| ADR-010 | Hero 交付物必有 HITL gate | 生效 |
-| ADR-011 | 数据飞轮 4 类信号沉淀必做 | 生效 |
-| ~~ADR-012~~ | ~~V1 hero 锁定短视频~~ | 已废,V1 hero 回归短视频+电商详情图 |
-| **ADR-013** | **2 个支持 Agent(HR + 财务经理)** | **生效** |
-| **ADR-014** | **三模式同群内切换(Plan/Ask/Auto)** | **生效** |
-| **ADR-015** | **Agent 拟人化 V1 必做** | **生效** |
-| **ADR-016** | **左栏导航简化** | **生效** |
+| **ADR-001-rev** | **Agent number reverse (v3.0): 1=text/2=document/3=picture/4=video** | **Effective** |
+| ~~ADR-001~~ | ~~Agent number v2.0 (2=Picture/3=Video/4=Document)~~ | Obsolete |
+| ADR-002 | Agent does not actively cross-deploy other Agents | Effective |
+| ADR-003 | Unified Master Orchestration Implementation Guidelines | Effective |
+| ADR-004 | Principles/Engineering split | Effective |
+| ADR-005-rev | Audio belongs to Agent 4 Video Engineer (v3.0) | Valid |
+| ADR-006 | Brief anti-shake batch update strategy | Effective |
+| ADR-007 | Model routing is divided into two layers (L1/L2) | Effective |
+| ~~ADR-008~~ | ~~Two independent groups: discussion group/working group~~ | Obsolete, replaced by ADR-014 |
+| ADR-009 | MCP protocol as the only standard for tool integration | Effective |
+| ADR-010 | Hero deliverables must have HITL gate | To take effect |
+| ADR-011 | Data flywheel type 4 signal precipitation must be done | Valid |
+| ~~ADR-012~~ | ~~V1 hero locks short video~~ | Canceled, V1 hero returns to short video + e-commerce details |
+| **ADR-013** | **2 Support Agents (HR + Financial Manager)** | **Effective** |
+| **ADR-014** | **Three modes intra-group switching (Plan/Ask/Auto)** | **Effective** |
+| **ADR-015** | **Agent Personification V1 Must Do** | **Effective** |
+| **ADR-016** | **Simplified left column navigation** | **Effective** |
 
-详细见 `docs/3_决策记录/开放问题与决议.md`。
+See `docs/3_Decision Record/Open Issues and Resolutions.md` for details.
 
 ---
 
-## 4. 不能做什么(7 类硬禁止)
+## 4. What not to do (category 7 hard prohibition)
 
-### 4.1 架构禁忌
+### 4.1 Architectural Taboos
 
-- ❌ `call_other_agent` 跨调
-- ❌ Agent 走 HTTP/RPC 直连
-- ❌ 主编排自己生成内容
-- ❌ Skill 全文进 LLM
-- ❌ State 存全文
-- ❌ Agent handler 里直接调工具 SDK(必须走 MCP client)
-- ❌ 新增工具不暴露为 MCP server
+- ❌ `call_other_agent` cross-call
+- ❌ Agent uses HTTP/RPC direct connection
+- ❌ The main editor generates content by himself
+- ❌ Skill full text into LLM
+- ❌ State save the full text
+- ❌ Directly adjust the tool SDK in the Agent handler (MCP client must be used)
+- ❌ New tools are not exposed as MCP server
 
-### 4.2 模型 / Prompt 禁忌
+### 4.2 Model/Prompt Taboo
 
-- ❌ `import openai` / `import anthropic` 等 SDK 调模型
-- ❌ Prompt 字面量内联代码
-- ❌ Agent 自己决定模型(必须走 routing_hints)
-- ❌ 跳过 Pydantic JSON Schema 校验
-- ❌ 改 prompt 不更新回归测试 yaml
+- ❌ `import openai` / `import anthropic` and other SDKs to adjust the model
+- ❌ Prompt literal inline code
+- ❌ Agent decides the model by itself (routing_hints must be used)
+- ❌ Skip Pydantic JSON Schema validation
+- ❌ Change prompt to not update regression test yaml
 
-### 4.3 用户体验禁忌
+### 4.3 User experience taboos
 
-- ❌ 让用户填空澄清
-- ❌ 加按钮替代对话(违反原则 10)
-- ❌ emoji(用 lucide-react)
-- ❌ 暴露 Agent 协作内部过程(用户只看到 Agent 出场,不看到调度)
-- ❌ 一群多任务
-- ❌ Hero 任务无 HITL gate
-- ❌ V1 不支持中断 C
+- ❌ Let users fill in the blanks for clarification
+- ❌ Add buttons to replace dialogue (violates principle 10)
+- ❌ emoji (using lucide-react)
+- ❌ Expose the internal process of Agent collaboration (users only see Agent appearances, not scheduling)
+- ❌ A group of multi-taskers
+- ❌ Hero mission has no HITL gate
+- ❌ V1 does not support interrupt C
 
-### 4.4 数据 / 状态禁忌
+### 4.4 Data/Status Taboos
 
-- ❌ 跨群共享 messages(每群独立)
-- ❌ 省 LangGraph PostgreSQL checkpointer
-- ❌ 把 OSS 凭证下发到客户端
-- ❌ 数据库明文存 token / API key
-- ❌ 跳过配额检查
-- ❌ 任务完成不写飞轮 4 类信号
-- ❌ 训练数据没有用户授权
+- ❌ Share messages across groups (each group is independent)
+- ❌ Provincial LangGraph PostgreSQL checkpointer
+- ❌ Send OSS credentials to the client
+- ❌ Store token / API key in plain text in database
+- ❌ Skip quota checks
+- ❌ No flywheel type 4 signal is written when the task is completed
+- ❌ Training data without user authorization
 
-### 4.5 范围禁忌
+### 4.5 Range taboos
 
-V1 不实现:
+V1 does not implement:
 
-- 中断 D(改方向,fork graph)
-- Skill 创作市场(V1.5)
-- Agent 进修(V2)
-- 创作者分润机制(V2)
-- 多人协作群(V2)
-- 多个讨论群合并(V2)
-- [做同款] / [加入此团队] 一键复刻按钮(V2)
-- 语音消息(V1.5)
-- 海报模板 / 长文创作 / PPT(V1.5)
-- 改 Agent 编号映射
-- 改 task_type 命名
-- 放弃 MCP 用回直连
+- Interrupt D (change direction, fork graph)
+- Skill Creation Market (V1.5)
+- Agent training (V2)
+- Creator profit sharing mechanism (V2)
+- Multi-person collaboration group (V2)
+- Merge multiple discussion groups (V2)
+- [Make the same style] / [Join this team] One-click replica button (V2)
+- Voice messages (V1.5)
+- Poster template / long article creation / PPT (V1.5)
+- Change Agent number mapping
+- Change task_type naming
+- Give up MCP and go back to direct connection
 
-### 4.6 商业禁忌
+### 4.6 Business Taboos
 
-- ❌ 不做付费版直接上线("以后再付费"是融资骗自己)
-- ❌ 不算单位经济直接放免费额度
-- ❌ CAC > LTV/3 的渠道继续投
-- ❌ 看创作者飞轮"涨用户"忽略主动 GTM
+- ❌ Go online directly without making a paid version ("pay later" is a financing deception)
+- ❌ Directly release the free quota without counting the unit economy
+- ❌ Continue investing in channels with CAC > LTV/3
+- ❌ Watch the creator flywheel "increase users" and ignore active GTM
 
-### 4.7 工程禁忌
+### 4.7 Engineering Taboos
 
-- ❌ 省 MCP 集成测试
-- ❌ 省 HITL Playwright 测试
-- ❌ 省数据飞轮信号沉淀的 PR check
-- ❌ 单容器跑多 Agent
-- ❌ Agent 跑 GPU 密集任务(应走 Celery GPU 节点)
-- ❌ 跨 namespace 直连 prod 数据库
-- ❌ 把 .env 提交进 git
-- ❌ 跳过 Alembic 迁移
-- ❌ 用 print 打日志(用 structlog)
+- ❌ Save MCP integration testing
+- ❌ Save HITL Playwright Test
+- ❌ PR check for data-saving flywheel signal precipitation
+- ❌ A single container can run multiple agents
+- ❌ Agent runs GPU-intensive tasks (should use Celery GPU node)
+- ❌ Directly connect to prod database across namespaces
+- ❌ Submit .env into git
+- ❌ Skip Alembic migration
+- ❌ Use print to log (use structlog)
 - ❌ except Exception: pass
 
 ---
 
-## 5. 决策矩阵(冲突时如何裁决)
+## 5. Decision matrix (how to resolve conflicts)
 
-### 5.1 文档冲突
+### 5.1 Document Conflict
 
 ```
 CLAUDE.md 与 ARCHITECTURE.md 冲突 → 以 CLAUDE.md 为准(操作指令更新更频繁)
@@ -453,14 +453,14 @@ ARCHITECTURE.md 与 docs/2_工程实现 冲突 → 以 ARCHITECTURE.md 为准(�
 ADR 与 任何文档 冲突 → 以 ADR 为准(治理决策最高)
 ```
 
-### 5.2 原则冲突
+### 5.2 Conflict of principles
 
 ```
 铁律 (原则 16 条) 与 任何"代码风格 / 个人偏好" 冲突 → 以铁律为准
 铁律之间冲突(罕见) → 走治理流程开 issue
 ```
 
-### 5.3 V1 范围冲突
+### 5.3 V1 scope conflict
 
 ```
 "产品想要 X" 但 X 在 V2 范围 → 拒绝,接口预留
@@ -468,108 +468,108 @@ ADR 与 任何文档 冲突 → 以 ADR 为准(治理决策最高)
   → 必须修订 ADR(走治理流程)
 ```
 
-### 5.4 ADR 之间冲突
+### 5.4 Conflicts between ADRs
 
-罕见。如发生(如 ADR-002 不跨调 vs ADR-009 MCP 工具复用):
+rare. If it happens (such as ADR-002 without cross-modulation vs ADR-009 MCP tool reuse):
 
-- 写新 ADR(ADR-NNN-修订版)标记 supersedes 旧版
-- 旧 ADR 状态改"已废弃"
-- 不直接改旧 ADR
+- Write new ADR (ADR-NNN-revision) tag supersedes old version
+- The old ADR status changed to "obsolete"
+- Do not modify old ADR directly
 
 ---
 
-## 6. 治理流程
+## 6. Governance Process
 
-### 6.1 新增 ADR
+### 6.1 New ADR
 
-1. 在 `docs/3_决策记录/开放问题与决议.md` 末尾追加"草案 ADR-NNN"
-2. 工程 + 产品双签
-3. 状态改"已采纳",更新相关文档(CLAUDE.md / ARCHITECTURE.md / 业务文档)
-4. 落地状态打勾
+1. Add "Draft ADR-NNN" at the end of `docs/3_Decision Record/Open Issues and Resolutions.md`
+2. Engineering + product double signing
+3. Change the status to "Adopted" and update relevant documents (CLAUDE.md / ARCHITECTURE.md / business documents)
+4. Tick the landing status
 
-### 6.2 修订 ADR
+### 6.2 Revised ADR
 
-1. **不改动已采纳的 ADR 内容**(保留历史)
-2. 新增 ADR-NNN-修订版,标记 supersedes 旧版
-3. 旧 ADR 状态改"已废弃"
-4. 同步更新所有引用旧 ADR 的文档
+1. **Do not change the content of the adopted ADR** (retain history)
+2. Added ADR-NNN-revision, marked supersedes old version
+3. The old ADR status changes to "obsolete"
+4. Synchronously update all documents referencing the old ADR
 
-### 6.3 prompt 变更
+### 6.3 prompt changes
 
-每个 prompt 加版本号 + 校验和:
+Add version number + checksum to each prompt:
 
 ```python
 ORCHESTRATOR_INTENT_PROMPT = """..."""
 ORCHESTRATOR_INTENT_PROMPT_VERSION = "v1.0.0"
 ```
 
-新版 prompt 上线流程:
+New version of prompt online process:
 
-1. 写新版,标 v1.0.1
-2. LiteLLM 路由 `prompt_version_split: {v1.0.0: 90%, v1.0.1: 10%}`
-3. 监控关键指标 24 小时
-4. 全量 / 回滚
+1. Write a new version, marked v1.0.1
+2. LiteLLM routing `prompt_version_split: {v1.0.0: 90%, v1.0.1: 10%}`
+3. Monitor key indicators 24 hours a day
+4. Full/rollback
 
-### 6.4 Skill 变更
+### 6.4 Skill changes
 
-1. Skill YAML 改 + version bump(v1.0 → v1.1)
-2. 同时上 v1.0 和 v1.1,A/B test
-3. 7 天观察用户满意度
-4. 全量 / 回滚
+1. Skill YAML change + version bump(v1.0 → v1.1)
+2. Launch v1.0 and v1.1 at the same time, A/B test
+3. Observe user satisfaction within 7 days
+4. Full/rollback
 
-### 6.5 商业 / 单位经济变更
+### 6.5 Business/Unit Economy Changes
 
-1. 更新 `docs/3_决策记录/商业模型与单位经济.md`
-2. 同步 CLAUDE.md §4
-3. 必要时新增 ADR
+1. Update `docs/3_Decision Record/Business Model and Unit Economics.md`
+2. Synchronization CLAUDE.md §4
+3. Add ADR if necessary
 
 ---
 
-## 7. V1 / V1.5 / V2 范围
+## 7. V1 / V1.5 / V2 range
 
-### V1(8 周到 P0,3 个月到完整)
+### V1 (8 weeks to P0, 3 months to full)
 
 V1-P0:
-- 主编排 8 子模块
-- 4 个 Agent + 各 1 happy-path handler
-- **短视频 Skill**(hero,3 道 HITL gate + 中断 C)
-- 7 个 MCP server(可只 happy path)
-- 数据飞轮 4 类信号
-- 前端三栏 + HITL 组件
+- Main orchestration 8 sub-modules
+- 4 Agents + 1 happy-path handler each
+- **Short Video Skill** (hero, 3 HITL gate + interrupt C)
+- 7 MCP servers (can only be happy path)
+- Data Flywheel Category 4 Signal
+- Three columns on the front end + HITL component
 - Docker Compose dev
 
-V1-P1(3 个月内):
-- 电商详情图 Skill
-- 配额体系完整
-- Reflexion / Skill Drafter pipeline 真跑
-- K8s 生产部署
-- 监控大盘 + 告警
+V1-P1(within 3 months):
+- E-commerce details map Skill
+- Complete quota system
+- Reflexion / Skill Drafter pipeline real run
+- K8s production deployment
+- Monitor the market + alert
 
-V1-P2(6 个月内):
-- 离线继续运行
-- 跨群消息搜索
-- 偏好画像可视化
-- BGM 素材库扩充
+V1-P2(within 6 months):
+- Continue running offline
+- Cross-group message search
+- Preference portrait visualization
+- BGM material library expansion
 
-### V1.5(6-9 月)
+### V1.5(June-September)
 
-- Skill 创作市场(创作者飞轮开放)
-- 偏好画像可视化
-- 平台发布集成(抖音 / 视频号 / 小红书 API)
-- 海报模板 / 长文 / PPT Skill 上线
+- Skill creation market (open to creator flywheel)
+- Preference portrait visualization
+- Platform publishing integration (Douyin/Video account/Xiaohongshu API)
+- Poster template / long article / PPT Skill online
 
-### V2(9-18 月)
+### V2(9-18 months)
 
-- 中断 D(改方向,fork graph)
-- Agent 进修(语料 + LoRA 微调)
-- 创作者分润
-- 多人协作群
-- 海外市场(英文 TikTok)
-- 自研短视频模型
+- Interrupt D (change direction, fork graph)
+- Agent training (corpus + LoRA fine-tuning)
+- Profit sharing for creators
+- Multi-person collaboration group
+- Overseas markets (English TikTok)
+- Self-developed short video model
 
 ---
 
-## 8. 任何修改 V1 范围的提议必经流程
+## 8. Any proposal to modify the V1 scope must go through the process
 
 ```
 1. 在 docs/3_决策记录/开放问题与决议.md 提"草案"
@@ -583,14 +583,14 @@ V1-P2(6 个月内):
 5. 同步 CLAUDE.md / ARCHITECTURE.md
 ```
 
-**禁止**:在不改文档的情况下"先做了再说"。
+**Forbidden**: "Do it first and then talk about it later" without changing the document.
 
 ---
 
-## 9. 一句话
+## 9. One sentence
 
-> **铁律是为了让所有人节省决策时间——不是为了限制你**。
+> **The iron rule is to save everyone decision-making time - not to restrict you**.
 >
-> 如果你觉得某条铁律阻碍了对的事,**先问自己**:是这条铁律错了,还是你想偏离的方向错了?
+> If you feel that a certain iron law is blocking the right thing, **Ask yourself first**: Is this iron law wrong, or is the direction you want to deviate from wrong?
 >
-> 90% 的时候是后者。剩下 10%,走治理流程。
+> 90% of the time it's the latter. The remaining 10% goes through the governance process.

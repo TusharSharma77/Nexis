@@ -73,7 +73,7 @@ export function GroupMembers({ conversationId }: { conversationId: string }) {
           <span className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-full z-40 mt-1 w-[260px] rounded-md border border-wechat-line bg-white p-2 shadow-lg">
             <div className="mb-1.5 px-1 text-[11px] font-medium text-wechat-sub">
-              成员({roles.length})
+              Members ({roles.length})
             </div>
             <ul className="flex flex-col gap-0.5">
               {roles.map((m) => (

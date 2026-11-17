@@ -1,7 +1,6 @@
 'use client';
 
-// 60px 应用栏 — 顶部用户头像 + 6 个 nav
-// ADR-016 简化:取消通讯录等多余入口;v4 §3 加 AI 学院 / 技能市场
+// 60px App Sidebar — user avatar + 6 navigation icons
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -30,12 +29,12 @@ const NAV: {
   href: string;
   position: 'top' | 'bottom';
 }[] = [
-  { id: 'chat',     label: '聊天',     icon: MessageSquare, href: '/',         position: 'top' },
-  { id: 'prompts',  label: '知识库',   icon: BookOpen,      href: '/prompts',  position: 'top' },
-  { id: 'results',  label: '成果库',   icon: Package,       href: '/results',  position: 'top' },
-  { id: 'academy',  label: 'AI 学院',  icon: GraduationCap, href: '/academy',  position: 'top' },
-  { id: 'market',   label: '技能市场', icon: Store,         href: '/market',   position: 'top' },
-  { id: 'settings', label: '设置',     icon: Settings,      href: '/settings', position: 'bottom' },
+  { id: 'chat',     label: 'Chat',         icon: MessageSquare, href: '/',         position: 'top' },
+  { id: 'prompts',  label: 'Knowledge',    icon: BookOpen,      href: '/prompts',  position: 'top' },
+  { id: 'results',  label: 'Deliverables', icon: Package,       href: '/results',  position: 'top' },
+  { id: 'academy',  label: 'Academy',      icon: GraduationCap, href: '/academy',  position: 'top' },
+  { id: 'market',   label: 'Skills',       icon: Store,         href: '/market',   position: 'top' },
+  { id: 'settings', label: 'Settings',     icon: Settings,      href: '/settings', position: 'bottom' },
 ];
 
 export function AppSidebar() {
@@ -54,10 +53,10 @@ export function AppSidebar() {
         type="button"
         onClick={() => router.push('/profile')}
         className="mb-4 h-[34px] w-[34px] overflow-hidden rounded-full"
-        title="个人主页"
+        title="Profile"
       >
         <span className="grid h-full w-full place-items-center bg-wechat-green-soft text-[12px] font-semibold text-wechat-green">
-          {profile?.nickname?.slice(0, 2) ?? '老板'}
+          {profile?.nickname?.slice(0, 2) ?? 'Me'}
         </span>
       </button>
 

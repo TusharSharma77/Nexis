@@ -45,7 +45,7 @@ export function ChatList() {
           <Search size={12} strokeWidth={2.2} className="text-neutral-400" />
           <input
             type="search"
-            placeholder="搜索会话"
+            placeholder="Search conversations"
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
             className="flex-1 bg-transparent text-[12px] text-wechat-fg outline-none placeholder:text-wechat-mute"
@@ -56,7 +56,7 @@ export function ChatList() {
       <div className="flex-1 overflow-y-auto">
         {filtered.length === 0 && (
           <div className="px-4 py-8 text-center text-[12px] text-wechat-mute">
-            没有匹配的会话
+            No conversations found
           </div>
         )}
         {filtered.map((conversation) => (

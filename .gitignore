@@ -1,4 +1,4 @@
-# ── Python ──
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -15,7 +15,7 @@ htmlcov/
 .coverage
 .coverage.*
 
-# ── Node / Next.js ──
+# Node / Next.js
 node_modules/
 .next/
 frontend/test-results/
@@ -27,13 +27,13 @@ build/
 .pnpm-store/
 .turbo/
 
-# ── 环境变量(保留 .env.example)──
+# Environment Variables
 .env
 .env.local
 .env.*.local
 !.env.example
 
-# ── IDE / OS ──
+# IDE / OS
 .vscode/
 .idea/
 *.swp
@@ -41,11 +41,9 @@ build/
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# ── Claude Code 本地配置 ──
 .claude/
 
-# ── 日志 / 临时 ──
+# Logs & Runtime
 *.log
 logs/
 .runtime/
@@ -53,7 +51,7 @@ tmp/
 temp/
 _v4_dump.json
 
-# ── 数据库 / 上传产物 ──
+# Databases & Local Storage
 *.db
 *.sqlite
 *.sqlite3
@@ -61,7 +59,7 @@ uploads/
 storage/
 oss-data/
 
-# ── Docker / K8s 本地 secrets ──
+# Secrets & Certs
 *.pem
 *.key
 secrets/

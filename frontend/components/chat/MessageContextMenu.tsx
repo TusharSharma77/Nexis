@@ -24,14 +24,14 @@ export function MessageContextMenu({ x, y, actions, onClose }: {
   }, [onClose]);
 
   const items = [
-    { icon: <Copy size={12} />, label: '复制', action: actions.onCopy },
-    { icon: <CornerDownRight size={12} />, label: '引用', action: actions.onQuote },
-    { icon: <Crosshair size={12} />, label: '定位', action: actions.onLocate },
+    { icon: <Copy size={12} />, label: 'Copy', action: actions.onCopy },
+    { icon: <CornerDownRight size={12} />, label: 'Quote', action: actions.onQuote },
+    { icon: <Crosshair size={12} />, label: 'Locate', action: actions.onLocate },
   ];
 
   return (
     <>
-      <button type="button" aria-label="关闭消息菜单" className="fixed inset-0 z-40 cursor-default" onClick={onClose} />
+      <button type="button" aria-label="Close message menu" className="fixed inset-0 z-40 cursor-default" onClick={onClose} />
       <div
         className="fixed z-50 min-w-[120px] overflow-hidden rounded-md border border-wechat-line bg-white shadow-lg"
         style={{

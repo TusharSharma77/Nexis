@@ -38,14 +38,14 @@ function errorFromBody(status: number, body: unknown): ApiError {
     const structured = detail as Record<string, unknown>;
     return new ApiError(
       status,
-      String(structured.detail ?? structured.message ?? `请求失败 (${status})`),
+      String(structured.detail ?? structured.message ?? `Request failed (${status})`),
       structured.code ? String(structured.code) : undefined,
       detail,
     );
   }
   return new ApiError(
     status,
-    typeof detail === 'string' ? detail : `请求失败 (${status})`,
+    typeof detail === 'string' ? detail : `Request failed (${status})`,
     undefined,
     detail,
   );

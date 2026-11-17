@@ -42,7 +42,7 @@ export function ClarificationCard({
     <div className="max-w-[480px] rounded-md border border-wechat-green-soft bg-wechat-green-soft/50 p-3">
       <div className="mb-1 text-[12px] font-medium text-wechat-fg">{data.question}</div>
       <div className="mb-2 text-[10px] text-wechat-mute">
-        第 {(data.round_number ?? 0) + 1} 轮 · 还需 {data.total_missing ?? 1} 项
+        Round {(data.round_number ?? 0) + 1} · {data.total_missing ?? 1} item(s) needed
       </div>
       {options.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
@@ -70,7 +70,7 @@ export function ClarificationCard({
             value={draft}
             disabled={disabled}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder={data.form === 'image_upload' ? '输入图片 URL 或素材引用' : '请输入内容'}
+            placeholder={data.form === 'image_upload' ? 'Enter image URL or asset reference' : 'Type your answer...'}
             className="min-w-0 flex-1 rounded-sm border border-wechat-line bg-white px-2 py-1 text-[12px] outline-none focus:border-wechat-green"
           />
           <button
@@ -78,7 +78,7 @@ export function ClarificationCard({
             disabled={disabled || !draft.trim()}
             className="rounded-sm bg-wechat-green px-3 py-1 text-[12px] text-white disabled:opacity-50"
           >
-            确定
+            Confirm
           </button>
         </form>
       )}

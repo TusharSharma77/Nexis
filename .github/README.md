@@ -1,26 +1,31 @@
 <div align="center">
 
-# Haole
+# Nexis
 
-### Durable Multi-Agent Professional Workspace
+### Event-Driven Multi-Agent Collaborative Workspace
 
-**A group-chat workspace where agents, skills, MCP tools, human approvals and durable event delivery operate behind explicit task contracts.**
+**A collaborative group-chat platform where autonomous agents, skills, MCP tools, human approvals, and durable event delivery operate behind explicit task contracts.**
 
-`LangGraph` · `FastAPI` · `Next.js` · `MCP` · `Redis Streams` · `PostgreSQL` · `SSE / WebSocket`
+`LangGraph` · `FastAPI` · `Next.js 15` · `MCP` · `Redis Streams` · `PostgreSQL` · `SSE / WebSocket`
 
-[Full Technical README](../README.md) · [Getting Started](../GETTING_STARTED.md) · [Production Notes](../deploy/production/README.md) · [Migration Evidence](../docs/migration/FINAL_VALIDATION_REPORT.md)
+[Full Technical README](../README.md) · [Getting Started](../GETTING_STARTED.md) · [Production Notes](../deploy/production/README.md)
 
 </div>
 
 ---
 
-## Why this project matters
+## Why Nexis Matters
 
-Haole is not positioned as another generic “chat with many agents” demo. Its engineering focus is the **runtime underneath professional agent collaboration**: explicit task/result contracts, durable user events, skills, MCP boundaries, human-in-the-loop control and reconnectable delivery.
+Nexis is designed for **production-grade multi-agent collaboration**. Instead of fragmented chatbots or brittle chains, it provides:
+- **Explicit Task & Result Contracts**: Decoupled agent workers communicate asynchronously over Redis Streams.
+- **Master Orchestrator**: LangGraph state machine manages task breakdown, state transitions, and checkpoints.
+- **Model Context Protocol (MCP)**: Strict tool boundary isolating search, browser, file, and media processing.
+- **Human-in-the-Loop (HITL)**: Interactive approval cards pause high-cost actions for explicit user sign-off.
+- **Durable Event Replay**: PostgreSQL event log and SSE `Last-Event-ID` protocol enable seamless reconnection without lost messages.
 
-The interaction model is group chat, while the backend keeps orchestration and execution separate from the UI.
+---
 
-## Core Runtime
+## Core Architecture
 
 ```mermaid
 flowchart LR
@@ -29,7 +34,7 @@ flowchart LR
     API --> PIPE[Message Pipeline]
     PIPE --> GRAPH[LangGraph Orchestrator]
     GRAPH -->|AgentTask| BUS[(Redis Streams)]
-    BUS --> WORKER[Agent Worker]
+    BUS --> WORKER[Agent Workers]
     WORKER -->|AgentResult| BUS
     WORKER --> MCP[MCP Tool Boundary]
     GRAPH --> PG[(PostgreSQL)]
@@ -38,56 +43,27 @@ flowchart LR
     PUB --> EVENTS
 ```
 
-## Evidence — what is actually implemented
+---
 
-| Capability | Current implementation |
+## Capabilities Matrix
+
+| Capability | Implementation |
 |---|---|
-| Agent interaction | main chat, group chat, single-agent chat, `@Agent`, Plan / Ask / Auto modes |
-| Orchestration | one LangGraph orchestration backbone with `AgentTask` / `AgentResult` contracts |
-| Worker transport | Redis Streams task bus |
-| Tools | MCP service boundary |
-| Skills | YAML validation, matching, metadata, install / enable / disable lifecycle |
-| Human control | HITL, task steps, artifact and agent-state presentation |
-| Durable events | PostgreSQL persistence + Redis Pub/Sub + process fallback |
-| Reconnection | stable event IDs, `Last-Event-ID`, deduplication and SSE replay |
-| API contracts | OpenAPI-generated TypeScript types + contract drift checks |
-| Quality | backend tests, agent tests, frontend tests, Playwright, CI and security checks |
+| **Agent Interaction** | Main team chat, 1-on-1 private agent chat, `@Agent` mentions, Plan / Ask / Auto execution modes |
+| **Orchestration** | LangGraph orchestration backbone with `AgentTask` / `AgentResult` Redis schemas |
+| **Worker Transport** | Redis Streams asynchronous task bus |
+| **Tool Integration** | Standardized MCP (Model Context Protocol) service boundaries |
+| **Skills Engine** | Declarative YAML skills with validation, permission scoping, and lifecycle toggles |
+| **Human Control** | Interactive HITL cards, task step tracking, artifact previews, and agent status panels |
+| **Event Persistence** | PostgreSQL persistence, Redis Pub/Sub broadcast, and local in-process fallback |
+| **Reconnection** | Stable event IDs, `Last-Event-ID` tracking, frontend deduplication, and durable SSE replay |
+| **API Contracts** | OpenAPI-generated TypeScript client types with automated contract validation |
 
-## Professional Workflow Example
+---
 
-The repository includes an e-commerce collaboration workflow implemented inside the same workspace rather than as a separate hard-coded application:
+## Quickstart
 
-```text
-User request
-   ↓
-Executive Assistant — clarify / coordinate delivery
-   ↓
-Copy Agent — Chinese product copy
-   ↓
-Image Agent — product imagery
-   ↓
-Composition Agent — deterministic Pillow assembly
-   ↓
-User confirmation before paid image generation
-```
-
-Real image-generation calls require explicit credentials and user confirmation. Missing provider credentials cause an explicit failure; the production path does **not** silently fabricate an image or switch providers.
-
-## Runtime Modes & Trust Boundary
-
-The default repository supports a credential-free `LITELLM_MOCK=true` development/test mode. Real model, SMS, object-storage and publishing integrations require server-side credentials.
-
-This distinction is deliberate:
-
-- mock paths are explicit;
-- production/staging do not silently fall back to frontend mock data;
-- secrets are server-side only;
-- durable SSE replay depends on PostgreSQL;
-- real long-chain media smoke tests remain opt-in rather than being represented as always-on CI coverage.
-
-## Quick Start
-
-Requirements: **Python 3.12**, **uv 0.11.x**, **Node 20+**, **pnpm 9.15.9**, Docker Compose.
+Requirements: **Python 3.12+**, **uv**, **Node 20+**, **pnpm 9.15.9**, **Docker Compose**.
 
 ```powershell
 .\scripts\core.ps1 setup
@@ -95,14 +71,4 @@ Requirements: **Python 3.12**, **uv 0.11.x**, **Node 20+**, **pnpm 9.15.9**, Doc
 .\scripts\core.ps1 status
 ```
 
-The local core path runs the real JWT / FastAPI / PostgreSQL / Redis / Agent flow while enabling an explicit development guest session.
-
-For environment variables, production integrations, database migrations, event contracts and the complete CI matrix, continue to the **[full README](../README.md)**.
-
----
-
-<div align="center">
-
-**Task contracts · durable events · skills · tools · HITL · recovery**
-
-</div>
+For environment configurations, deployment guides, and API schemas, see the **[main README](../README.md)**.

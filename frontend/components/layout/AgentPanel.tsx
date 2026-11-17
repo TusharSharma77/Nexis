@@ -23,11 +23,11 @@ export function AgentPanel() {
     <section className="flex h-screen flex-col overflow-hidden border-l border-wechat-line bg-white">
       <header className="flex h-14 flex-shrink-0 items-center border-b border-wechat-line px-3.5">
         <div>
-          <div className="text-[13px] font-semibold text-wechat-fg">执行流</div>
+          <div className="text-[13px] font-semibold text-wechat-fg">Execution Graph</div>
           <div className="mt-px text-[11px] text-wechat-sub">
             {currentTaskId
-              ? `任务 ${currentTaskId.slice(0, 8)} ${currentStatus === 'running' ? '执行中' : currentStatus === 'completed' ? '已完成' : '失败'}`
-              : `${steps.length} 个已记录步骤`}
+              ? `Task ${currentTaskId.slice(0, 8)}: ${currentStatus === 'running' ? 'Running' : currentStatus === 'completed' ? 'Completed' : 'Failed'}`
+              : `${steps.length} recorded steps`}
           </div>
         </div>
       </header>
@@ -35,7 +35,7 @@ export function AgentPanel() {
       <div className="flex-1 overflow-y-auto p-3">
         {groups.length === 0 ? (
           <div className="grid h-full place-items-center text-center text-[12px] text-wechat-mute">
-            发送 Auto 任务后，实时步骤会显示在这里。
+            Live execution steps will stream here when running Auto tasks.
           </div>
         ) : groups.map(([agentId, agentSteps]) => {
           const role = agentId as RoleKey;

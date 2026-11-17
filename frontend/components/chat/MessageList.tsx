@@ -22,7 +22,7 @@ export function MessageList({ conversationId }: { conversationId: string }) {
       </div>
       {messages.length === 0 && (
         <div className="grid h-40 place-items-center text-[12px] text-wechat-mute">
-          @一下 AI 员工,分配任务……
+          Type @ to delegate tasks to your AI agents...
         </div>
       )}
       {messages.map((m) => (

@@ -106,8 +106,8 @@ export function useSendMessage(conversationId: string | null) {
           task_id: crypto.randomUUID(),
           agent_id: 'ceo_assistant',
           payload: {
-            title: '无密钥任务已完成',
-            summary: 'mock AgentResult 已通过统一 UserEvent 进入消息流',
+            title: 'Mock Task Completed',
+            summary: 'Mock AgentResult delivered to message stream via unified UserEvent',
             artifact: {
               type: 'document',
               reference: 'oss://mock/no-key-result.md',
@@ -159,13 +159,13 @@ export type PromptItem = {
 };
 
 const MOCK_MATERIALS: MaterialItem[] = [
-  { id: 'm1', name: '商品主图.jpg', mime: 'image/jpeg', folder: '电商素材', source: 'upload' },
-  { id: 'm2', name: '视频素材.xlsx', mime: 'application/vnd.ms-excel', folder: '短视频', source: 'upload' },
-  { id: 'm3', name: '品牌字体.zip', mime: 'application/zip', source: 'upload' },
+  { id: 'm1', name: 'product_hero.jpg', mime: 'image/jpeg', folder: 'E-Commerce', source: 'upload' },
+  { id: 'm2', name: 'video_assets.xlsx', mime: 'application/vnd.ms-excel', folder: 'Short Video', source: 'upload' },
+  { id: 'm3', name: 'brand_fonts.zip', mime: 'application/zip', source: 'upload' },
 ];
 const MOCK_PROMPTS: PromptItem[] = [
-  { id: 'p1', name: '短视频标准开场', content: '请用 5 秒短句钩子,快速引出主题', used_count: 12 },
-  { id: 'p2', name: '电商详情图风格', content: '风格:简洁、留白、品牌色统一;文字三行内', used_count: 5 },
+  { id: 'p1', name: 'Viral Opening Hook', content: 'Hook the audience in 5 seconds with a high-impact question or metric', used_count: 12 },
+  { id: 'p2', name: 'Product Showcase Style', content: 'Style: clean, ample negative space, consistent brand palette, max 3 lines copy', used_count: 5 },
 ];
 
 export function useMaterials(opts?: Partial<UseQueryOptions<MaterialItem[]>>) {
@@ -244,7 +244,7 @@ export function useOpenPrivateChat() {
       if (USE_MOCK) {
         return {
           id: `private-${agentId}`,
-          name: `与 ${agentId} 的私聊`,
+          name: `Private Chat with ${agentId}`,
           mode: 'private_chat',
           work_mode: null,
           status: 'active',
@@ -256,19 +256,19 @@ export function useOpenPrivateChat() {
   });
 }
 
-// ── Skill 浏览与生命周期 ──
+// ── Skill Catalog & Lifecycle ──
 const MOCK_SKILLS: SkillCard[] = [
   {
     id: 's1',
     skill_id: 'short_video',
-    name: '短视频制作',
-    description: '5 步生成 30-90 秒短视频,适配多个内容平台',
+    name: 'Short Video Production',
+    description: '5-step automated workflow generating high-retention 30-90s videos across social platforms',
     domain: 'video',
     scenario: 'short_video',
     version: '1.0',
     creator_type: 'platform',
     visibility: 'public',
-    keywords: ['短视频', '视频制作', '内容创作'],
+    keywords: ['video', 'production', 'creator'],
     lifecycle: 'built_in',
     built_in: true,
     installed: true,
@@ -278,14 +278,14 @@ const MOCK_SKILLS: SkillCard[] = [
   {
     id: 's2',
     skill_id: 'ecommerce_detail_image',
-    name: '电商详情图制作',
-    description: '风格分析 → 文案 → 5 张分段图 → 长图拼接',
+    name: 'Product Showcase Design',
+    description: 'Style extraction -> copywriting -> multi-panel generation -> long image stitch',
     domain: 'image',
     scenario: 'ecommerce_detail',
     version: '1.0',
     creator_type: 'platform',
     visibility: 'public',
-    keywords: ['电商', '详情图', '商品'],
+    keywords: ['ecommerce', 'showcase', 'products'],
     lifecycle: 'installed_enabled',
     built_in: false,
     installed: true,
@@ -392,7 +392,7 @@ const MOCK_ARTIFACTS: ArtifactRow[] = [
     type: 'video',
     is_final: true,
     reference: 'oss://nexis-dev/short-video/2026-05-01.mp4',
-    title: '城市漫游短视频',
+    title: 'Urban Exploration Short Video',
     created_at: '2026-05-01T10:23:00Z',
   },
   {
@@ -401,7 +401,7 @@ const MOCK_ARTIFACTS: ArtifactRow[] = [
     type: 'image',
     is_final: true,
     reference: 'oss://nexis-dev/ecommerce/detail-001.jpg',
-    title: '电商详情图:夏季新品系列',
+    title: 'Product Showcase: Summer Apparel',
     created_at: '2026-05-03T09:10:00Z',
   },
 ];
@@ -422,7 +422,7 @@ export function useArtifacts(filters?: {
   });
 }
 
-// ── 个人主页 ──
+// ── Profile ──
 export type ProfileSummary = {
   id: string;
   phone: string;
@@ -436,7 +436,7 @@ export type ProfileSummary = {
 const MOCK_PROFILE: ProfileSummary = {
   id: 'mock-user',
   phone: '13800138000',
-  nickname: '老板',
+  nickname: 'Workspace Admin',
   plan: 'free',
   created_at: '2026-04-01T00:00:00Z',
 };

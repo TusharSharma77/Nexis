@@ -1,19 +1,19 @@
-# 项目中智能体相关逻辑总览
+# Overview of agent-related logic in the project
 
-本文档用于梳理 `haole` 项目里与“智能体”相关的核心代码、运行链路和职责边界，方便快速定位主编排、各 Agent、工具调用和增强能力。
+This document is used to sort out the core code, running links and responsibility boundaries related to the "agent" in the `Nexis` project, so as to quickly locate the main orchestration, each Agent, tool calling and enhanced capabilities.
 
-## 1. 总体架构
+## 1. Overall architecture
 
 这个项目不是“单个智能体 + 一堆工具”的结构，而是分成 4 层：
 
-1. 用户消息入口和任务决策层
-2. 主编排层
-3. 4 个独立 Agent 执行层
+1. User message entry and task decision-making layer
+2. Main orchestration layer
+3. 4 independent Agent execution layers
 4. MCP 工具层和模型调用层
 
 当前项目只保留 LangGraph 主编排链路。
 
-## 2. 关键目录
+## 2. Key directory
 
 | 目录 | 作用 |
 | --- | --- |

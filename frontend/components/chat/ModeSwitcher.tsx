@@ -1,22 +1,20 @@
 'use client';
 
-// 群顶部模式切换 chip(Plan/Ask/Auto)— ADR-014 三模式同群切换
-// 切换 = POST /api/conversations/:id/switch-work-mode
-// Plan/Ask 不扣任务配额(铁律 #20)
+// Group top mode switch chip (Plan/Ask/Auto)
 import clsx from 'clsx';
 import { useConversationStore, type WorkMode } from '@/stores/conversation';
 import { useSwitchWorkMode } from '@/lib/api';
 
 const LABELS: Record<WorkMode, string> = {
-  plan: '讨论',
-  ask: '询问',
-  auto: '自动',
+  plan: 'Plan',
+  ask: 'Ask',
+  auto: 'Auto',
 };
 
 const HINTS: Record<WorkMode, string> = {
-  plan: 'Plan · 讨论(不扣任务配额)',
-  ask: 'Ask · 询问(不扣任务配额)',
-  auto: 'Auto · 自动(扣任务配额)',
+  plan: 'Plan · Strategic planning (no quota consumed)',
+  ask: 'Ask · Clarify questions (no quota consumed)',
+  auto: 'Auto · Autonomous task execution',
 };
 
 export function ModeSwitcher({ conversationId }: { conversationId: string }) {

@@ -1,7 +1,7 @@
 'use client';
 
-// 主入口 — 未登录或未选模式 → OnboardingFlow
-// 已选模式 → 跳到主会话(/chat/main)
+// Main Entrypoint — If uninitialized, route to OnboardingFlow.
+// If already configured, redirect to active session.
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useConversationStore } from '@/stores/conversation';

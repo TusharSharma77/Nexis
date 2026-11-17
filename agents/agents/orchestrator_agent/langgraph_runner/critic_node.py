@@ -149,34 +149,33 @@ def get_max_retries(step_def: dict[str, Any]) -> int:
 # ─────────────────────────────────────────────────────────────────
 # 评审主入口
 # ─────────────────────────────────────────────────────────────────
-CRITIC_SYSTEM_PROMPT = """你是 haole 多智能体平台的质量评审员(Critic)。
+CRITIC_SYSTEM_PROMPT = """You are the Quality Critic for the Nexis Multi-Agent Platform.
 
-# 你的工作
-读完一个 step 的产物 + 该 step 的 prompt 与上下文 → 给出结构化 JSON 评审:
+# Responsibilities
+Evaluate step output artifacts against prompt requirements and quality rubrics, then output a structured JSON critique:
 
 ```
 {
-  "score": <0..1 的浮点数,1.0 = 完全合格>,
-  "issues": ["<具体问题 1>", "<具体问题 2>", ...],
-  "suggestion": "<≤ 300 字的一句话改进建议,要可执行>",
-  "should_retry": <true | false,score 低且改进可执行就 true>
+  "score": <float between 0.0 and 1.0, 1.0 = flawless execution>,
+  "issues": ["<specific issue 1>", "<specific issue 2>", ...],
+  "suggestion": "<actionable improvement recommendation <= 100 words>",
+  "should_retry": <true | false, true if score is below threshold and improvements are actionable>
 }
 ```
 
-# 评分原则
-1. **基于产物本身**判断 — 不引入外部信息或自己的偏好
-2. **看 rubric 严格执行** — 每条 rubric 不达成扣 0.1-0.3 分
-3. **issues 要具体** — 不要写"质量不够",要写"开头钩子缺乏冲突感"
-4. **suggestion 要可执行** — 给一个清晰可改的方向,不写"再写好一点"
-5. **不评分广告法 / 合规** — 那是 compliance persona 的职责
-6. **只输出 JSON**,不要 markdown 包裹、不要解释文字。
+# Evaluation Principles
+1. Base judgments strictly on the artifact against given instructions; eliminate subjective bias.
+2. Follow rubrics precisely: deduct 0.1 to 0.3 points per unmet rubric criterion.
+3. Be specific in issues: avoid generic comments like "low quality"; provide concrete flaws.
+4. Suggestions must be directly actionable by the worker LLM.
+5. Return raw JSON without Markdown formatting or prose commentary.
 """
 
-DEFAULT_RUBRIC = """通用 rubric(没有自定义时使用):
-1. 是否切题(产物是否回应 prompt 的核心需求)
-2. 是否完整(prompt 列出的要点是否都覆盖)
-3. 是否清晰(语言流畅、结构合理)
-4. 是否可用(下游 step 能否直接用,无需大改)"""
+DEFAULT_RUBRIC = """General Evaluation Rubric:
+1. Relevance: Does the deliverable fulfill the core intent and parameters of the prompt?
+2. Completeness: Are all requested components, sections, and criteria included?
+3. Clarity & Flow: Is the content well-structured, fluent, and coherent?
+4. Downstream Utility: Can downstream workflow steps immediately consume this artifact without manual correction?"""
 
 
 async def evaluate(
@@ -301,25 +300,25 @@ def build_retry_prompt(
     cleaned = _CRITIC_FEEDBACK_BLOCK.sub("", original_prompt).rstrip()
 
     issues_block = (
-        "\n".join(f"- {x}" for x in critique.issues) if critique.issues else "(无具体问题列表)"
+        "\n".join(f"- {x}" for x in critique.issues) if critique.issues else "(No specific issues listed)"
     )
-    suggestion_block = critique.suggestion or "(无)"
+    suggestion_block = critique.suggestion or "(None)"
 
     return (
         f"{cleaned}\n\n"
-        "## [Critic 反馈 — 重新生成请改进]\n"
-        f"上一版被评审为 {critique.score:.2f} / 阈值 {critique.threshold_used:.2f}。\n"
-        f"### 主要问题\n{issues_block}\n\n"
-        f"### 改进方向\n{suggestion_block}\n\n"
-        "请基于反馈重新生成,保持原 prompt 的核心要求不变。"
+        "## [Critic Feedback — Refinement Required]\n"
+        f"Previous version evaluated at {critique.score:.2f} / threshold {critique.threshold_used:.2f}.\n"
+        f"### Key Issues\n{issues_block}\n\n"
+        f"### Actionable Guidance\n{suggestion_block}\n\n"
+        "Please regenerate content addressing this feedback while maintaining core prompt objectives."
     )
 
 
 # ─────────────────────────────────────────────────────────────────
-# 内部工具
+# Internal Utilities
 # ─────────────────────────────────────────────────────────────────
 _CRITIC_FEEDBACK_BLOCK = re.compile(
-    r"\n\n## \[Critic 反馈 — 重新生成请改进\].*$",
+    r"\n\n## \[(?:Critic 反馈 — 重新生成请改进|Critic Feedback — Refinement Required)\].*$",
     re.DOTALL,
 )
 _JSON_FENCE_RE = re.compile(r"```(?:json)?\s*(.+?)\s*```", re.DOTALL)
@@ -330,9 +329,7 @@ def _resolve_rubric(step_def: dict[str, Any], fields: dict[str, Any]) -> str:
     if isinstance(step_critic, dict):
         rubric = step_critic.get("rubric")
         if isinstance(rubric, str) and rubric.strip():
-            # 简单字段替换 — 不引 jinja,避免和 prompt_template 的 {{ }} 冲突
             return rubric
-    # 回退到 task_type 默认 rubric(扩展点)
     return DEFAULT_RUBRIC
 
 
@@ -343,17 +340,16 @@ def _build_critic_user_msg(
     produced_artifact_text: str,
     rubric: str,
 ) -> str:
-    # 控制总长度,防止 critic 自己 token 爆炸
     prompt_excerpt = rendered_prompt[:3000]
     artifact_excerpt = produced_artifact_text[:8000]
     return (
-        f"# 被评审 step\n"
+        f"# Step Under Evaluation\n"
         f"task_type: {task_type}\n\n"
-        f"# 原始 prompt(已渲染)\n```\n{prompt_excerpt}\n```\n\n"
-        f"# 产物内容(可能是文本 / JSON / Markdown)\n"
+        f"# Original Rendered Prompt\n```\n{prompt_excerpt}\n```\n\n"
+        f"# Deliverable Content (Text / JSON / Markdown)\n"
         f"```\n{artifact_excerpt}\n```\n\n"
-        f"# 评审 rubric\n{rubric}\n\n"
-        "请输出评审 JSON,字段:score / issues / suggestion / should_retry。"
+        f"# Evaluation Rubric\n{rubric}\n\n"
+        "Output strict JSON with fields: score / issues / suggestion / should_retry."
     )
 
 

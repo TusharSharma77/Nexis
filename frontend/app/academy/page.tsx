@@ -1,8 +1,6 @@
 'use client';
 
-// AI 学院二级页(v4 §32)
-// 学习中心:浏览所有 Skill;管理已安装 / 平台预置 / 自己创建
-// V1 不含 Skill 创作 / Agent 进修 (V2)
+// Agent Academy: Skill Playbook Catalog & Management
 import { useState } from 'react';
 import { CheckCircle, GraduationCap, Layers } from 'lucide-react';
 import clsx from 'clsx';
@@ -18,47 +16,47 @@ export default function AcademyPage() {
 
   return (
     <div className="flex h-full flex-col bg-white">
-        <header className="flex h-14 flex-shrink-0 items-center justify-between border-b border-wechat-line px-5">
-          <div>
-            <h1 className="flex items-center gap-2 text-[15px] font-semibold text-wechat-fg">
-              <GraduationCap size={16} /> AI 学院
-            </h1>
-            <p className="text-[11px] text-wechat-mute">
-              浏览 Skill，管理已安装与已启用状态（Skill 创作 / Agent 进修 V2 上线）
-            </p>
-          </div>
-          <div className="flex rounded-md border border-wechat-line bg-white p-0.5 text-[12px]">
-            {(['browse', 'mine'] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTab(t)}
-                className={clsx(
-                  'rounded-sm px-3 py-1 transition-colors',
-                  tab === t
-                    ? 'bg-wechat-green-soft text-wechat-green'
-                    : 'text-wechat-mute hover:bg-neutral-50',
-                )}
-              >
-                {t === 'browse' ? '学习中心' : '我的 Skill'}
-              </button>
-            ))}
-          </div>
-        </header>
+      <header className="flex h-14 flex-shrink-0 items-center justify-between border-b border-wechat-line px-5">
+        <div>
+          <h1 className="flex items-center gap-2 text-[15px] font-semibold text-wechat-fg">
+            <GraduationCap size={16} /> Agent Academy
+          </h1>
+          <p className="text-[11px] text-wechat-mute">
+            Explore skill playbooks and manage agent competencies across workflows
+          </p>
+        </div>
+        <div className="flex rounded-md border border-wechat-line bg-white p-0.5 text-[12px]">
+          {(['browse', 'mine'] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              className={clsx(
+                'rounded-sm px-3 py-1 transition-colors',
+                tab === t
+                  ? 'bg-wechat-green-soft text-wechat-green'
+                  : 'text-wechat-mute hover:bg-neutral-50',
+              )}
+            >
+              {t === 'browse' ? 'Catalog' : 'My Active Skills'}
+            </button>
+          ))}
+        </div>
+      </header>
 
-        <main className="flex-1 overflow-y-auto p-5">
-          {items.length === 0 ? (
-            <div className="grid h-full place-items-center text-[13px] text-wechat-mute">
-              {tab === 'browse' ? '暂无可用 Skill' : '尚未安装任何 Skill'}
-            </div>
-          ) : (
-            <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {items.map((s) => (
-                <SkillCardView key={s.id} skill={s} />
-              ))}
-            </ul>
-          )}
-        </main>
+      <main className="flex-1 overflow-y-auto p-5">
+        {items.length === 0 ? (
+          <div className="grid h-full place-items-center text-[13px] text-wechat-mute">
+            {tab === 'browse' ? 'No skill playbooks found' : 'No skills enabled yet'}
+          </div>
+        ) : (
+          <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {items.map((s) => (
+              <SkillCardView key={s.id} skill={s} />
+            ))}
+          </ul>
+        )}
+      </main>
     </div>
   );
 }
@@ -70,12 +68,12 @@ function SkillCardView({ skill }: { skill: SkillCard }) {
         <span className="text-[13px] font-semibold text-wechat-fg">{skill.name}</span>
         {skill.installed && (
           <span className="flex items-center gap-1 text-[10px] text-wechat-green">
-            <CheckCircle size={10} /> {skill.enabled ? '已启用' : '已停用'}
+            <CheckCircle size={10} /> {skill.enabled ? 'Active' : 'Disabled'}
           </span>
         )}
       </div>
       <p className="mb-2 line-clamp-2 text-[11px] text-wechat-sub">
-        {skill.description || '无描述'}
+        {skill.description || 'No description provided'}
       </p>
       <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-wechat-mute">
         <span className="flex items-center gap-0.5">

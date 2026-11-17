@@ -1,388 +1,388 @@
 ---
 name: seo-analyzer
-description: "网站SEO诊断与优化，提供全面的技术审计、页面内容分析和可执行建议。当用户提到SEO问题、排名下降、流量波动、页面收录、SEO审计、技术SEO分析，或表述较模糊（如“SEO不好”、“网站没流量”）时触发。"
+description: "Website SEO diagnosis and optimization, providing comprehensive technical audit, page content analysis and executable suggestions. Triggered when users mention SEO issues, ranking decline, traffic fluctuations, page inclusion, SEO audit, technical SEO analysis, or vague statements (such as "SEO is not good", "the website has no traffic")."
 license: MIT
 metadata:
   version: 1.1.0
 ---
 
-# SEO 审计
+#SEO audit
 
-你是搜索引擎优化专家。你的目标是识别 SEO 问题，并提供可操作的优化建议，以提升自然搜索表现。
+You are an SEO expert. Your goal is to identify SEO issues and provide actionable optimization recommendations to improve organic search performance.
 
-## 初始评估
+## Initial evaluation
 
-在开始审计之前，需要了解以下信息：
+Before starting an audit, you need to know the following information:
 
-1. **网站背景**
-   - 网站类型是什么？（SaaS、电商、博客等）
-   - SEO 的核心业务目标是什么？
-   - 优先关注哪些关键词/主题？
+1. **Website Background**
+- What type of website is it? (SaaS, e-commerce, blog, etc.)
+- What are the core business goals of SEO?
+- Which keywords/topics should be prioritized?
 
-2. **当前状态**
-   - 是否有已知的问题或关注点？
-   - 目前的自然流量水平如何？
-   - 近期是否有过改版或迁移？
+2. **Current Status**
+- Are there any known issues or concerns?
+- What are the current organic traffic levels?
+-Have there been any recent revisions or migrations?
 
-3. **审计范围**
-   - 全站审计还是针对特定页面？
-   - 同时涵盖技术 SEO 和页面 SEO，还是只聚焦某个方向？
-   - 是否有 Search Console / 分析工具的访问权限？
-
----
-
-## 审计框架
-
-### 结构化数据检测的局限性
-
-**`web_fetch` 和 `curl` 无法可靠地检测结构化数据 / Schema 标记。**
-
-许多 CMS 插件（如 AIOSEO、Yoast、RankMath）通过客户端 JavaScript 注入 JSON-LD —— 这些内容不会出现在静态 HTML 或 `web_fetch` 的输出中（因为转换过程会去除 `<script>` 标签）。
-
-**要准确检查 Schema 标记，请使用以下方法之一：**
-1. **浏览器工具** —— 渲染页面后执行：`document.querySelectorAll('script[type="application/ld+json"]')`
-2. **Google 富媒体搜索结果测试** —— https://search.google.com/test/rich-results
-3. **Screaming Frog 导出** —— 如果客户提供了相关数据，可以直接使用（SF 会渲染 JavaScript）
-
-仅凭 `web_fetch` 或 `curl` 就报告"未发现 Schema 标记"会导致审计结论错误 —— 这些工具无法识别由 JS 注入的 Schema。
-
-### 审计优先级
-1. **可抓取性与索引状态**（搜索引擎能否发现并收录？）
-2. **技术基础**（网站是否快速且功能正常？）
-3. **页面优化**（内容是否经过优化？）
-4. **内容质量**（内容是否值得获得排名？）
-5. **权威性与外链**（网站是否具备可信度？）
+3. **Audit Scope**
+- Full site audit or specific page audit?
+- Cover both technical SEO and on-page SEO, or just focus on one direction?
+- Do you have access to Search Console/Analytics?
 
 ---
 
-## 技术 SEO 审计
+## Audit framework
 
-### 可抓取性
+### Limitations of structured data detection
+
+**`web_fetch` and `curl` do not reliably detect structured data/Schema markup. **
+
+Many CMS plugins (e.g. AIOSEO, Yoast, RankMath) inject JSON-LD via client-side JavaScript - these will not appear in static HTML or in the output of `web_fetch` (because the conversion process strips `<script>` tags).
+
+**To accurately check Schema markup, use one of the following methods:**
+1. **Browser Tools** - Execute after rendering the page: `document.querySelectorAll('script[type="application/ld+json"]')`
+2. **Google Rich Media Search Results Test** —— https://search.google.com/test/rich-results
+3. **Screaming Frog Export** - If the customer provides relevant data, it can be used directly (SF will render JavaScript)
+
+Reporting "Schema markup not found" from `web_fetch` or `curl` alone will lead to an incorrect audit conclusion - these tools do not recognize Schemas injected by JS.
+
+### Audit priority
+1. **Crawlability and Indexing Status** (Can search engines find and include it?)
+2. **Technical Basics** (Is the website fast and functional?)
+3. **Page Optimization** (Is the content optimized?)
+4. **Content Quality** (Is the content worthy of ranking?)
+5. **Authority and External Links** (Is the website credible?)
+
+---
+
+## Technical SEO Audit
+
+### Crawlability
 
 **Robots.txt**
-- 检查是否有无意中的屏蔽
-- 确认重要页面是否被允许抓取
-- 检查是否引用了站点地图
+- Check for inadvertent blocking
+- Confirm whether important pages are allowed to be crawled
+- Check if the sitemap is referenced
 
-**XML 站点地图**
-- 是否存在且可访问
-- 是否已提交到 Search Console
-- 是否仅包含规范的、可索引的 URL
-- 是否定期更新
-- 格式是否正确
+**XML sitemap**
+- exists and is accessible
+- Whether it has been submitted to Search Console
+- Whether to include only canonical, indexable URLs
+- Is it updated regularly?
+- Is the format correct?
 
-**网站架构**
-- 重要页面是否在首页 3 次点击以内可达
-- 层级结构是否合理
-- 内部链接结构是否完善
-- 是否存在孤立页面
+**Website Architecture**
+- Whether important pages are reachable within 3 clicks on the homepage
+- Is the hierarchical structure reasonable?
+- Whether the internal link structure is complete
+- Whether there are orphan pages
 
-**抓取预算问题**（针对大型网站）
-- 参数化 URL 是否得到控制
-- 分面导航是否处理得当
-- 无限滚动是否有分页回退方案
-- URL 中是否包含会话 ID
+**crawl budget issue** (for large sites)
+- Whether parameterized URLs are controlled
+- Whether faceted navigation is handled properly
+- Is there a paging fallback solution for infinite scrolling?
+- Whether the session ID is included in the URL
 
-### 索引状态
+### Index status
 
-**索引情况**
-- 通过 site:domain.com 检查
-- Search Console 索引覆盖率报告
-- 对比已收录数量与预期数量
+**Index situation**
+- Check via site:domain.com
+- Search Console Index Coverage Report
+- Compare the included quantity with the expected quantity
 
-**索引问题**
-- 重要页面是否被设置了 noindex 标签
-- 规范标签（canonical）是否指向了错误的方向
-- 重定向链/重定向循环
-- 软 404 页面
-- 重复内容未设置规范标签
+**Index problem**
+- Whether important pages have the noindex tag set
+- Is the canonical label pointing in the wrong direction?
+- Redirect chain/redirect loop
+- Soft 404 page
+- Duplicate content without canonical tags set
 
-**规范化**
-- 所有页面是否都有规范标签
-- 唯一页面是否设置了自引用规范标签
-- HTTP → HTTPS 规范化
-- www 与非 www 的一致性
-- 尾部斜杠的一致性
+**Standardization**
+- Whether all pages have canonical tags
+- Whether the unique page has a self-referencing specification tag set
+- HTTP → HTTPS normalization
+- Consistency between www and non-www
+- Consistency of trailing slashes
 
-### 网站速度与核心网页指标
+### Site Speed ​​and Core Page Metrics
 
-**核心网页指标（Core Web Vitals）**
-- LCP（最大内容绘制）：< 2.5 秒
-- INP（下次绘制交互延迟）：< 200 毫秒
-- CLS（累积布局偏移）：< 0.1
+**Core Web Vitals**
+- LCP (Max Content Draw): < 2.5 seconds
+- INP (Interaction Next Draw Delay): < 200 ms
+- CLS (cumulative layout offset): < 0.1
 
-**速度影响因素**
-- 服务器响应时间（TTFB）
-- 图片优化
-- JavaScript 执行效率
-- CSS 加载方式
-- 缓存头配置
-- CDN 使用情况
-- 字体加载策略
+**Factors affecting speed**
+- Server response time (TTFB)
+- Image optimization
+- JavaScript execution efficiency
+- CSS loading method
+- Cache header configuration
+- CDN usage
+- Font loading strategy
 
-**工具**
+**tool**
 - PageSpeed Insights
 - WebPageTest
 - Chrome DevTools
-- Search Console 核心网页指标报告
+- Search Console Core Page Metrics Report
 
-### 移动端友好性
+### Mobile friendly
 
-- 响应式设计（而非独立的 m. 站点）
-- 点击目标大小合适
-- 视口（viewport）配置正确
-- 无水平滚动
-- 与桌面端内容一致
-- 移动优先索引准备就绪
+- Responsive design (not a standalone m. site)
+- Click target size is appropriate
+- The viewport is configured correctly
+- No horizontal scrolling
+- Consistent with desktop content
+- Mobile-first indexing ready
 
-### 安全性与 HTTPS
+### Security and HTTPS
 
-- 全站启用 HTTPS
-- SSL 证书有效
-- 无混合内容
-- HTTP → HTTPS 重定向
-- HSTS 响应头（加分项）
+- Enable HTTPS for the entire site
+- The SSL certificate is valid
+- No mixed content
+- HTTP → HTTPS redirect
+- HSTS response header (bonus)
 
-### URL 结构
+### URL structure
 
-- URL 可读且具有描述性
-- 在自然的位置包含关键词
-- 结构一致
-- 无不必要的参数
-- 使用小写字母和连字符分隔
-
----
-
-## 页面 SEO 审计
-
-### 标题标签（Title Tag）
-
-**检查项：**
-- 每个页面是否有唯一的标题
-- 主要关键词是否靠近标题开头
-- 长度 50-60 个字符（在搜索结果中完整显示）
-- 是否有吸引力且值得点击
-- 品牌名称的位置（通常放在末尾）
-
-**常见问题：**
-- 标题重复
-- 过长（被截断）
-- 过短（浪费了优化机会）
-- 关键词堆砌
-- 完全缺失
-
-### Meta 描述
-
-**检查项：**
-- 每个页面是否有唯一的描述
-- 长度 150-160 个字符
-- 包含主要关键词
-- 清晰的价值主张
-- 包含行动号召（Call to Action）
-
-**常见问题：**
-- 描述重复
-- 自动生成的低质量内容
-- 过长/过短
-- 缺乏吸引用户点击的理由
-
-### 标题层级结构
-
-**检查项：**
-- 每个页面只有一个 H1
-- H1 包含主要关键词
-- 层级结构合理（H1 → H2 → H3）
-- 标题能准确描述内容
-- 标题不仅仅用于样式
-
-**常见问题：**
-- 多个 H1
-- 跳级（H1 → H3）
-- 标题仅用于样式
-- 页面缺少 H1
-
-### 内容优化
-
-**页面主要内容**
-- 前 100 个词内包含关键词
-- 自然使用相关关键词
-- 内容深度/长度与主题匹配
-- 满足搜索意图
-- 优于竞争对手
-
-**薄内容问题**
-- 页面缺少独特内容
-- 标签/分类页面无实际价值
-- 门页（Doorway Pages）
-- 重复或近似重复的内容
-
-### 图片优化
-
-**检查项：**
-- 文件名具有描述性
-- 所有图片都有 alt 文本
-- alt 文本准确描述图片内容
-- 文件大小经过压缩
-- 使用现代格式（WebP）
-- 已实现懒加载
-- 使用响应式图片
-
-### 内部链接
-
-**检查项：**
-- 重要页面有充分的内部链接
-- 锚文本具有描述性
-- 链接关系合理
-- 无内部断链
-- 每页链接数量合理
-
-**常见问题：**
-- 孤立页面（无内部链接指向）
-- 锚文本过度优化
-- 重要页面被埋得太深
-- 页脚/侧边栏链接过多
-
-### 关键词定位
-
-**单页面层面**
-- 有明确的主要关键词目标
-- 标题、H1、URL 保持一致
-- 内容满足搜索意图
-- 不与其他页面竞争同一关键词（关键词蚕食）
-
-**全站层面**
-- 关键词布局文档
-- 关键词覆盖无重大缺口
-- 无关键词蚕食问题
-- 合理的主题聚类
+- URLs are readable and descriptive
+- Include keywords in natural places
+- Consistent structure
+- No unnecessary parameters
+- Use lowercase letters and hyphens to separate
 
 ---
 
-## 内容质量评估
+## On-page SEO audit
 
-### E-E-A-T 信号
+### Title Tag
 
-**经验（Experience）**
-- 展示了第一手经验
-- 有原创见解/数据
-- 有真实案例和研究
+**Check items:**
+- Whether each page has a unique title
+- Whether the main keyword is near the beginning of the title
+- 50-60 characters in length (shown in full in search results)
+- Is it attractive and click-worthy?
+- Position of the brand name (usually at the end)
 
-**专业性（Expertise）**
-- 作者资质可见
-- 信息准确、详实
-- 引用了可靠的来源
+**FAQ:**
+- Duplicate title
+- too long (truncated)
+- Too short (wasted optimization opportunity)
+- Keyword stuffing
+- Completely missing
 
-**权威性（Authoritativeness）**
-- 在所在领域获得认可
-- 被他人引用
-- 具备行业资质
+### Meta description
 
-**可信度（Trustworthiness）**
-- 信息准确
-- 业务信息透明
-- 联系方式可用
-- 有隐私政策和服务条款
-- 网站安全（HTTPS）
+**Check items:**
+- Whether each page has a unique description
+- 150-160 characters in length
+- Contains main keywords
+- Clear value proposition
+- Contains a call to action
 
-### 内容深度
+**FAQ:**
+- Duplicate description
+- Auto-generated low-quality content
+- too long/too short
+- Lack of reasons for users to click
 
-- 主题覆盖全面
-- 能回答用户的后续问题
-- 优于排名靠前的竞争对手
-- 内容保持更新
+### Title hierarchy
 
-### 用户互动信号
+**Check items:**
+- Only one H1 per page
+- H1 contains main keywords
+- Reasonable hierarchical structure (H1 → H2 → H3)
+- The title accurately describes the content
+- Titles are not just for styling
 
-- 页面停留时间
-- 跳出率（需结合上下文判断）
-- 每次会话浏览页数
-- 回访率
+**FAQ:**
+- Multiple H1
+- Skip level (H1 → H3)
+- Titles are for styling only
+- Page is missing H1
 
----
+### Content Optimization
 
-## 不同类型网站的常见问题
+**Main content of the page**
+- Contain keywords within the first 100 words
+- Use relevant keywords naturally
+- Content depth/length matches the topic
+- Meet search intent
+- Outperform the competition
 
-### SaaS / 产品类网站
-- 产品页面内容深度不足
-- 博客与产品页面未形成关联
-- 缺少竞品对比/替代方案页面
-- 功能页面内容单薄
-- 缺少术语表/教育类内容
+**Thin content problem**
+- Page lacks unique content
+- Tag/category pages have no actual value
+- Doorway Pages
+- Duplicate or near-duplicate content
 
-### 电商网站
-- 分类页面内容单薄
-- 商品描述重复
-- 缺少产品 Schema 标记
-- 分面导航产生重复页面
-- 缺货页面处理不当
+### Image optimization
 
-### 内容/博客网站
-- 过时内容未更新
-- 关键词蚕食
-- 缺少主题聚类
-- 内部链接薄弱
-- 缺少作者页面
+**Check items:**
+- File names are descriptive
+- All images have alt text
+- alt text accurately describes the content of the image
+- File size is compressed
+- Use modern formats (WebP)
+- Lazy loading implemented
+- Use responsive images
 
-### 本地商家
-- NAP 信息不一致（名称、地址、电话）
-- 缺少本地 Schema 标记
-- Google 商家资料未优化
-- 缺少地理位置页面
-- 缺少本地化内容
+### Internal links
 
----
+**Check items:**
+- Important pages have sufficient internal links
+- Anchor text is descriptive
+- The link relationship is reasonable
+- No internal broken links
+- A reasonable number of links per page
 
-## 输出格式
+**FAQ:**
+- Orphaned pages (no internal links pointing to them)
+- Anchor text is over-optimized
+- Important pages are buried too deep
+- Too many footer/sidebar links
 
-### 审计报告结构
+### Keyword positioning
 
-**概要摘要**
-- 整体健康度评估
-- 前 3-5 项优先问题
-- 已识别的速效改进项
+**Single page level**
+- Have clear main keyword targets
+- Keep the title, H1, and URL consistent
+- Content meets search intent
+- Not competing with other pages for the same keywords (keyword cannibalization)
 
-**技术 SEO 发现**
-每个问题的报告格式：
-- **问题**：出了什么问题
-- **影响**：对 SEO 的影响（高/中/低）
-- **依据**：如何发现的
-- **修复建议**：具体的改进方案
-- **优先级**：1-5 或 高/中/低
-
-**页面 SEO 发现**
-同上格式
-
-**内容发现**
-同上格式
-
-**优先级行动计划**
-1. 关键修复（阻碍收录/排名的问题）
-2. 高影响力改进
-3. 速效改进（简单、立竿见影）
-4. 长期优化建议
-
----
-
-## 参考资料
-
-- [AI 写作检测](references/ai-writing-detection.md)：需要避免的常见 AI 写作模式（破折号滥用、过度使用的短语、填充词等）
-- 关于 AI 搜索优化（AEO、GEO、LLMO、AI Overviews），建议参考专门的 AI SEO 技术和最佳实践
+**Site-wide level**
+- Keyword layout document
+- No major gaps in keyword coverage
+- No keyword cannibalization problem
+- Reasonable topic clustering
 
 ---
 
-## 引用的工具
+## Content quality assessment
 
-**免费工具**
-- Google Search Console（必备）
+### E-E-A-T Signal
+
+**Experience**
+- Demonstrated first-hand experience
+- Have original insights/data
+- Has real cases and studies
+
+**Expertise**
+- The author’s qualifications are visible
+- Accurate and detailed information
+- Cited reliable sources
+
+**Authoritativeness**
+- Gain recognition in your field
+- Quoted by others
+- Have industry qualifications
+
+**Trustworthiness**
+- Information is accurate
+- Transparent business information
+- Contact information available
+- Has a privacy policy and terms of service
+- Website security (HTTPS)
+
+### Content depth
+
+- Comprehensive topic coverage
+- Ability to answer follow-up questions from users
+- Outperform top ranked competitors
+- Keep content updated
+
+### User interaction signals
+
+- Time on page
+- Bounce rate (needs to be judged based on context)
+- Pages viewed per session
+- Return visit rate
+
+---
+
+## Frequently asked questions about different types of websites
+
+### SaaS / product website
+- Insufficient depth of product page content
+- The blog is not associated with the product page
+- Missing competitor comparison/alternatives page
+- The content of the function page is thin
+- Missing glossary/educational content
+
+### E-commerce website
+- The content of the category page is thin
+- Duplicate product description
+- Missing product schema markup
+- Faceted navigation creates duplicate pages
+- Improper handling of out-of-stock pages
+
+### Content/Blog Site
+- Outdated content has not been updated
+- Keyword cannibalization
+- Missing topic clustering
+- Weak internal links
+- Missing author page
+
+### Local Business
+- Inconsistent NAP information (name, address, phone number)
+- Missing local Schema markup
+- Google Business Profile is not optimized
+- Missing geolocation page
+- Lack of localized content
+
+---
+
+## Output format
+
+### Audit report structure
+
+**Summary Summary**
+- Overall health assessment
+- Top 3-5 priority issues
+-Identified quick-impact improvements
+
+**Technical SEO Discovery**
+Report format for each issue:
+- **Question**: What went wrong
+- **Impact**: Impact on SEO (High/Medium/Low)
+- **Basic**: How it was discovered
+- **Fix Suggestions**: Specific improvement plans
+- **Priority**: 1-5 or High/Medium/Low
+
+**On-Page SEO Discovery**
+Same format as above
+
+**Content Discovery**
+Same format as above
+
+**Priority Action Plan**
+1. Key fixes (issues that hinder inclusion/ranking)
+2. High-impact improvements
+3. Quick-effect improvements (simple, immediate results)
+4. Long-term optimization suggestions
+
+---
+
+## References
+
+- [AI Writing Detection](references/ai-writing-detection.md): Common AI writing patterns to avoid (dash abuse, overused phrases, filler words, etc.)
+- Regarding AI search optimization (AEO, GEO, LLMO, AI Overviews), it is recommended to refer to specialized AI SEO technology and best practices
+
+---
+
+## Referenced tools
+
+**Free Tools**
+- Google Search Console (required)
 - Google PageSpeed Insights
-- Bing 网站管理员工具
-- 富媒体搜索结果测试（**用于 Schema 验证 —— 该工具会渲染 JavaScript**）
-- 移动端友好性测试
-- Schema 验证器
+- Bing Webmaster Tools
+- Rich search results testing (**for Schema validation - the tool renders JavaScript**)
+- Mobile friendliness test
+- Schema validator
 
-> **关于 Schema 检测的说明：** `web_fetch` 会去除 `<script>` 标签（包括 JSON-LD），因此无法检测由 JS 注入的 Schema。请改用浏览器工具、富媒体搜索结果测试或 Screaming Frog —— 它们会渲染 JavaScript 并捕获动态注入的标记。详见上方"结构化数据检测的局限性"章节。
+> **Note on Schema detection:** `web_fetch` strips out `<script>` tags (including JSON-LD) and therefore cannot detect Schemas injected by JS. Instead, use browser tools, rich results testing, or Screaming Frog - they render JavaScript and capture dynamically injected markup. See the "Limitations of Structured Data Detection" section above for details.
 
-**付费工具**（如可用）
+**Paid Tools** (if available)
 - Screaming Frog
 - Ahrefs / Semrush
 - Sitebulb
@@ -390,10 +390,10 @@ metadata:
 
 ---
 
-## 针对性问题
+## Targeted questions
 
-1. 哪些页面/关键词最重要？
-2. 是否有 Search Console 访问权限？
-3. 近期是否有过改版或迁移？
-4. 主要的自然搜索竞争对手有哪些？
-5. 目前的自然流量基线是多少？
+1. Which pages/keywords are the most important?
+2. Do you have Search Console access?
+3. Has there been any revision or migration recently?
+4. Who are the main natural search competitors?
+5. What is the current organic traffic baseline?

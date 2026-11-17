@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-/* === 设计变量(对齐 frontend_001 视觉)========================== */
+/* === Design System Variables ================================== */
 @theme {
   --color-wechat-green: #07c160;
   --color-wechat-green-soft: #e8f6ee;
@@ -23,7 +23,7 @@
   --color-discuss-blue: #e3f2fd;
   --color-work-green: #e8f5e9;
 
-  --font-wechat: 'PingFang SC', 'Microsoft YaHei', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-wechat: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* === Keyframes ================================================== */
@@ -94,7 +94,7 @@ body {
   }
 }
 
-/* 通用滚动条 */
+/* Scrollbar */
 *::-webkit-scrollbar {
   width: 6px;
   height: 6px;

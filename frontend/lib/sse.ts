@@ -183,17 +183,17 @@ export function applyUserEvent(event: UserEvent, onArtifactAdded: () => void = (
         conversation_id: conversationId,
         kind: 'agent_card',
         role: (event.agent_id ?? 'ceo_assistant') as RoleKey,
-        text: stringValue(payload.message) ?? '任务已完成',
+        text: stringValue(payload.message) ?? 'Task completed',
         card: {
           icon: artifact?.type === 'video'
             ? 'video'
             : artifact?.type === 'image'
               ? 'image'
               : 'doc',
-          title: stringValue(payload.title) ?? '任务已完成',
-          tag: '已完成',
+          title: stringValue(payload.title) ?? 'Task completed',
+          tag: 'Completed',
           tag_status: 'done',
-          items: [stringValue(payload.summary) ?? '结果已生成并保存到成果库'],
+          items: [stringValue(payload.summary) ?? 'Output generated and saved to deliverables'],
           footer: artifact?.reference ? String(artifact.reference) : undefined,
         },
       });
@@ -208,16 +208,16 @@ export function applyUserEvent(event: UserEvent, onArtifactAdded: () => void = (
         conversation_id: conversationId,
         kind: 'agent_card',
         role: (event.agent_id ?? 'ceo_assistant') as RoleKey,
-        text: stringValue(payload.message) ?? '任务执行失败',
+        text: stringValue(payload.message) ?? 'Task execution failed',
         card: {
           icon: 'doc',
-          title: stringValue(payload.title) ?? '任务执行失败',
-          tag: '失败',
+          title: stringValue(payload.title) ?? 'Task execution failed',
+          tag: 'Failed',
           tag_status: 'error',
           items: [
             stringValue(payload.error)
               ?? stringValue(payload.detail)
-              ?? '请检查配置后重试',
+              ?? 'Please verify configuration and retry',
           ],
         },
       });
@@ -243,7 +243,7 @@ export function applyUserEvent(event: UserEvent, onArtifactAdded: () => void = (
 }
 
 export function reportSSEError(error: unknown): void {
-  const message = error instanceof Error ? error.message : '实时连接失败';
+  const message = error instanceof Error ? error.message : 'Realtime connection failed';
   useWsStore.getState().setConnected(false);
   useWsStore.getState().setError(message);
 }
@@ -260,8 +260,8 @@ async function consumeStream(
     `${API_BASE}/api/conversations/${conversationId}/events`,
     { headers: buildSSEHeaders(token, lastEventId), signal },
   );
-  if (!response.ok) throw new Error(`实时连接失败 (${response.status})`);
-  if (!response.body) throw new Error('浏览器不支持流式响应');
+  if (!response.ok) throw new Error(`Realtime stream failed (${response.status})`);
+  if (!response.body) throw new Error('Browser streaming response unsupported');
   useWsStore.getState().setConnected(true);
 
   const parser = new SSEFrameParser();
@@ -269,7 +269,7 @@ async function consumeStream(
   const decoder = new TextDecoder();
   while (true) {
     const { value, done } = await reader.read();
-    if (done) throw new Error('实时连接已断开');
+    if (done) throw new Error('Realtime stream disconnected');
     for (const frame of parser.feed(decoder.decode(value, { stream: true }))) {
       if (!frame.id || !deduplicator.accept(frame.id)) continue;
       const event = JSON.parse(frame.data) as UserEvent;

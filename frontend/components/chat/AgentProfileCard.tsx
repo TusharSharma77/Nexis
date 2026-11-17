@@ -1,8 +1,8 @@
 'use client';
 
-// Agent 履历卡片(v4 §232-241)
-// - 悬停 0.3s / 点击头像出现
-// - 操作:[私聊] [查看更多] [分享名片]
+// Agent Profile Card:
+// - Appears on hover (0.3s) or avatar click
+// - Quick actions: [Direct Chat] [View Details] [Share Card]
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -26,13 +26,13 @@ const MODEL_BY_ROLE: Record<RoleKey, string> = {
 
 const SPECIALTIES_BY_ROLE: Record<RoleKey, string[]> = {
   user: [],
-  ceo_assistant: ['意图理解', '任务编排', '澄清', '中断处理'],
-  agent_1: ['短文', '长文', '研究', '分析', '翻译'],
-  agent_2: ['Excel', 'Word', '长图拼接', 'PDF 提取'],
-  agent_3: ['文生图', '风格分析', '质量校验', 'OCR'],
-  agent_4: ['TTS', 'Whisper', 'BGM', '视频合成'],
-  hr: ['Agent 推荐', 'Skill 引导', '能力边界'],
-  finance_manager: ['配额查询', '账单', '续费', '提醒'],
+  ceo_assistant: ['Intent Parsing', 'Task Orchestration', 'HITL Gates', 'Interruption Handling'],
+  agent_1: ['Short Copy', 'Long Form', 'Research Synthesis', 'SEO', 'Translation'],
+  agent_2: ['Excel Models', 'Word Docs', 'Visual Stitching', 'PDF Extraction'],
+  agent_3: ['Image Generation', 'Style Extraction', 'Quality Audit', 'OCR'],
+  agent_4: ['Voiceover TTS', 'Whisper ASR', 'BGM Matching', 'Video Composition'],
+  hr: ['Agent Recruitment', 'Skill Playbooks', 'Capacity Routing'],
+  finance_manager: ['Quota Tracking', 'Billing', 'Cost Optimization', 'Tier Upgrades'],
 };
 
 const PLATFORM_TOTAL_BY_ROLE: Record<RoleKey, number> = {
@@ -53,7 +53,6 @@ export interface AgentCardData {
 
 interface Props {
   data: AgentCardData;
-  /** 锚点位置:相对于父元素 */
   anchorRect: DOMRect | null;
   onClose: () => void;
   onPrivateChat?: () => void;
@@ -81,12 +80,12 @@ export function AgentProfileCard({
   }, [anchorRect]);
 
   function shareCard() {
-    const text = `${meta.name} · ${meta.description ?? ''} · 来自「Nexis」AI 工作团队`;
+    const text = `${meta.name} · ${meta.description ?? ''} · Nexis Multi-Agent Platform`;
     if (navigator.share) {
       void navigator.share({ title: meta.name, text });
     } else {
       void navigator.clipboard?.writeText(text);
-      alert('名片文本已复制');
+      alert('Card details copied to clipboard');
     }
   }
 
@@ -101,7 +100,7 @@ export function AgentProfileCard({
         className="fixed z-50 w-[280px] rounded-md border border-wechat-line bg-white shadow-xl"
         style={{ top: position.top, left: position.left }}
       >
-        {/* 头部 */}
+        {/* Header */}
         <div className="flex items-start gap-3 border-b border-wechat-line p-3">
           <span
             className="grid h-12 w-12 flex-shrink-0 place-items-center rounded text-[16px] font-bold text-white"
@@ -118,9 +117,9 @@ export function AgentProfileCard({
           </div>
         </div>
 
-        {/* 专业标识 */}
+        {/* Specialties */}
         <div className="border-b border-wechat-line p-3">
-          <div className="mb-1 text-[10px] font-medium text-wechat-mute">擅长</div>
+          <div className="mb-1 text-[10px] font-medium text-wechat-mute">Specialties</div>
           <div className="flex flex-wrap gap-1">
             {SPECIALTIES_BY_ROLE[data.role].map((s) => (
               <span
@@ -133,23 +132,23 @@ export function AgentProfileCard({
           </div>
         </div>
 
-        {/* 服务统计 */}
+        {/* Metrics */}
         <div className="border-b border-wechat-line p-3 text-[11px]">
           <div className="flex justify-between text-wechat-sub">
-            <span>已为你完成</span>
+            <span>Completed for you</span>
             <span className="tabular-nums text-wechat-fg">
-              {data.personalCount ?? 0} 次
+              {data.personalCount ?? 0} tasks
             </span>
           </div>
           <div className="mt-1 flex justify-between text-wechat-sub">
-            <span>平台累计</span>
+            <span>Platform Total</span>
             <span className="tabular-nums text-wechat-fg">
-              {PLATFORM_TOTAL_BY_ROLE[data.role].toLocaleString('zh-CN')} 次
+              {PLATFORM_TOTAL_BY_ROLE[data.role].toLocaleString('en-US')} runs
             </span>
           </div>
         </div>
 
-        {/* 操作 */}
+        {/* Actions */}
         <div className="flex divide-x divide-wechat-line">
           <button
             type="button"
@@ -160,14 +159,14 @@ export function AgentProfileCard({
             }}
             className="flex flex-1 items-center justify-center gap-1 py-2 text-[12px] text-wechat-fg hover:bg-neutral-50"
           >
-            <MessageCircle size={12} /> 私聊
+            <MessageCircle size={12} /> Direct Chat
           </button>
           <button
             type="button"
             onClick={shareCard}
             className="flex flex-1 items-center justify-center gap-1 py-2 text-[12px] text-wechat-fg hover:bg-neutral-50"
           >
-            <Share2 size={12} /> 名片
+            <Share2 size={12} /> Share
           </button>
           <button
             type="button"
@@ -177,7 +176,7 @@ export function AgentProfileCard({
             }}
             className="flex flex-1 items-center justify-center gap-1 py-2 text-[12px] text-wechat-fg hover:bg-neutral-50"
           >
-            <ExternalLink size={12} /> 详情
+            <ExternalLink size={12} /> Details
           </button>
         </div>
       </div>

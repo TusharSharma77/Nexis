@@ -143,7 +143,7 @@ export function Composer({ conversationId }: { conversationId: string }) {
             type="button"
             onClick={() => setQuoted(conversationId, null)}
             className="text-wechat-mute hover:text-wechat-fg"
-            aria-label="移除引用"
+            aria-label="Remove quote"
           >
             <X size={11} />
           </button>
@@ -156,7 +156,6 @@ export function Composer({ conversationId }: { conversationId: string }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
-            // 让 popover 接管方向键 / Enter / Tab / Esc
             if (mention && ['ArrowDown', 'ArrowUp', 'Enter', 'Tab', 'Escape'].includes(e.key)) {
               return;
             }
@@ -165,7 +164,7 @@ export function Composer({ conversationId }: { conversationId: string }) {
               dispatch();
             }
           }}
-          placeholder="@一下 AI 员工,分配任务..."
+          placeholder="Type @ to mention an agent, assign a task, or press Enter to send..."
           className="w-full min-h-[68px] resize-none border-none bg-transparent text-[13px] leading-[1.65] text-wechat-fg outline-none caret-wechat-green placeholder:text-wechat-mute"
         />
         <div className="flex justify-end pb-1.5">
@@ -180,7 +179,7 @@ export function Composer({ conversationId }: { conversationId: string }) {
                 : 'cursor-not-allowed bg-neutral-100 text-wechat-mute',
             )}
           >
-            发送
+            Send
           </button>
         </div>
       </div>

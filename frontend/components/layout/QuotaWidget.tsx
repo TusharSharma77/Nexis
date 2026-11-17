@@ -1,15 +1,14 @@
 'use client';
 
-// 配额画像 + 80% 主动提醒(财务经理实时画像)
-// 进入主会话时由顶部展示;非主会话隐藏
+// Quota summary widget + 80% proactive threshold alerts
 import { AlertTriangle } from 'lucide-react';
 import clsx from 'clsx';
 import { useMyQuota } from '@/lib/api';
 
 const QUOTA_LABEL: Record<string, string> = {
-  auto_tasks_daily: '今日任务',
-  video_tasks_daily: '今日视频',
-  groups_monthly: '本月新群',
+  auto_tasks_daily: 'Daily Tasks',
+  video_tasks_daily: 'Daily Videos',
+  groups_monthly: 'Monthly Groups',
 };
 
 export function QuotaWidget({ compact = false }: { compact?: boolean }) {
@@ -34,17 +33,17 @@ export function QuotaWidget({ compact = false }: { compact?: boolean }) {
     >
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-medium text-wechat-sub">
-          配额 · {data.plan === 'free' ? '免费版' : data.plan === 'personal' ? '个人版' : '团队版'}
+          Tier · {data.plan === 'free' ? 'Free Tier' : data.plan === 'personal' ? 'Pro Plan' : 'Enterprise'}
         </span>
         {hasWarning && (
           <span className="flex items-center gap-1 text-[10px] text-amber-700">
-            <AlertTriangle size={10} /> 财务经理提醒
+            <AlertTriangle size={10} /> Budget Warning
           </span>
         )}
       </div>
       {rows.map(({ key, row }) => (
         <div key={key} className="flex items-center gap-2 text-[11px]">
-          <span className="w-16 flex-shrink-0 text-wechat-mute">
+          <span className="w-20 flex-shrink-0 text-wechat-mute">
             {QUOTA_LABEL[key]}
           </span>
           <div className="h-1 flex-1 overflow-hidden rounded bg-neutral-200">
@@ -63,7 +62,7 @@ export function QuotaWidget({ compact = false }: { compact?: boolean }) {
       ))}
       {hasWarning && (
         <div className="mt-1 text-[11px] text-amber-800">
-          @财务经理 提醒:你今日{warnings.includes('auto_tasks_daily') ? '任务' : '视频'}配额已超 80%,需要升级吗?
+          @Finance Manager Alert: You have reached 80%+ of your daily {warnings.includes('auto_tasks_daily') ? 'task' : 'video'} quota.
         </div>
       )}
     </div>

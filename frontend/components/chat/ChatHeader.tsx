@@ -23,13 +23,13 @@ export function ChatHeader({ conversationId }: { conversationId: string }) {
 
       <div className="flex items-center gap-1">
         {isGroup && <GroupMembers conversationId={conversationId} />}
-        <button type="button" className="toolbar-btn" title="语音">
+        <button type="button" className="toolbar-btn" title="Voice Call">
           <Phone size={18} strokeWidth={1.8} />
         </button>
-        <button type="button" className="toolbar-btn" title="视频">
+        <button type="button" className="toolbar-btn" title="Video Call">
           <Video size={18} strokeWidth={1.8} />
         </button>
-        <button type="button" className="toolbar-btn" title="更多">
+        <button type="button" className="toolbar-btn" title="More Options">
           <MoreHorizontal size={18} strokeWidth={1.8} />
         </button>
       </div>

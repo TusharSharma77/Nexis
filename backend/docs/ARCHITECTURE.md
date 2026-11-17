@@ -1,23 +1,23 @@
 # ARCHITECTURE.md
 
-> **位置**:目标仓库 `docs/ARCHITECTURE.md`
-> **面向**:工程师在写代码前 / 写代码中查具体技术决策
-> **关系**:CLAUDE.md(操作指令)→ ARCHITECTURE.md(技术细节)→ docs/3_决策记录(为什么这么决策)
+> **Location**: Target warehouse `docs/ARCHITECTURE.md`
+> **For**: Engineers check specific technical decisions before/while writing code
+> **Relationship**: CLAUDE.md (operation instructions) → ARCHITECTURE.md (technical details) → docs/3_Decision record (why we made this decision)
 >
-> **版本**:v3.0(2026-05-05,对齐 ADR-001-rev / ADR-013 / ADR-014 / ADR-015 / ADR-016)
+> **Version**: v3.0 (2026-05-05, aligned ADR-001-rev / ADR-013 / ADR-014 / ADR-015 / ADR-016)
 >
-> **v3.0 关键变更**:
-> - 🔄 Agent 编号反向(ADR-001-rev):**Agent 2=文档 / Agent 3=图 / Agent 4=影音**
-> - ✨ 7 个 AI 角色(总裁助理 + 4 分任务 + HR + 财务经理)
-> - ✨ 三模式同群切换(Plan / Ask / Auto)
-> - ✨ Agent 拟人化(表情 + 状态 + 互动)
-> - ✨ 左栏简化(知识库 / 成果库提顶)
+> **v3.0 Key Changes**:
+> - 🔄 Agent number reverse (ADR-001-rev): **Agent 2=Document/Agent 3=Picture/Agent 4=Video**
+> - ✨ 7 AI roles (President Assistant + 4 tasks + HR + Financial Manager)
+> - ✨ Three modes of group switching (Plan / Ask / Auto)
+> - ✨ Agent personification (expression + status + interaction)
+> - ✨ Simplify the left column (knowledge base / achievement base promotion)
 
 ---
 
-## 1. 仓库结构骨架
+## 1. Warehouse structure skeleton
 
-顶层仅保留**根目录必备文件** + 三大模块 `backend/`、`agents/`、`frontend/`。
+The top level only retains **essential files in the root directory** + three major modules `backend/`, `agents/`, and `frontend/`.
 
 ```
 ./
@@ -26,22 +26,22 @@
 ├── GETTING_STARTED.md
 ├── .env.example
 │
-├── backend/                      # FastAPI、DB、API、Celery、运维与工程文档
+├── backend/ # FastAPI, DB, API, Celery, operation and maintenance and engineering documents
 │   ├── app/
-│   ├── infrastructure/           # Docker / compose / k8s / litellm / postgres 初始化
-│   ├── docs/                     # ARCHITECTURE、ADR、上线 runbook、架构文档副本等
+│ ├── infrastructure/ # Docker / compose / k8s / litellm / postgres initialization
+│ ├── docs/ # ARCHITECTURE, ADR, online runbook, copies of architecture documents, etc.
 │   ├── scripts/
-│   ├── skills/                   # Skill YAML(主编排契约)
+│ ├── skills/ # Skill YAML (main arrangement contract)
 │   ├── flywheel/
 │   ├── alembic/
 │   └── tests/
 │
-├── agents/                       # 智能体模块:Python 包 + MCP 工具进程
-│   ├── agents/                   # 可 import 的包名 `agents`(主编排 + 4 工人 + _common)
-│   │   ├── orchestrator/         # LangGraph 主编排
+├── agents/ # Agent module: Python package + MCP tool process
+│ ├── agents/ # Importable package name `agents` (main orchestrator + 4 workers + _common)
+│ │ ├── orchestrator/ # LangGraph main orchestrator
 │   │   ├── text/ / document/ / image/ / av/
 │   │   └── _common/
-│   ├── mcp_servers/              # 7 个 MCP HTTP 服务(独立 pyproject)
+│ ├── mcp_servers/ # 7 MCP HTTP services (independent pyproject)
 │   └── pyproject.toml
 │
 └── frontend/                     # Next.js 15
@@ -50,89 +50,89 @@
 
 ---
 
-## 2. 完整技术选型(13 分类)
+## 2. Complete technology selection (13 categories)
 
-> 所有版本号是**最低版本下限**,可向上但不向下。
+> All version numbers are the **minimum version limit**, which can go up but not down.
 
-### 2.1 运行时与基础语言
+### 2.1 Runtime and basic language
 
-| 项 | 选型 | 版本 |
+| Item | Selection | Version |
 |----|------|-----|
 | Python | CPython | 3.12+ |
 | Node | Node.js | 20 LTS+ |
-| TypeScript | 强制启用 | 5.4+ |
-| 包管理(后端)| **uv** | 最新 |
-| 包管理(前端)| **pnpm** | 9+ |
-| 镜像基础 | python:3.12-slim + node:20-alpine | |
+| TypeScript | Force enabled | 5.4+ |
+| Package management (backend)| **uv** | Latest |
+| Package management (front-end) | **pnpm** | 9+ |
+| Mirror basics | python:3.12-slim + node:20-alpine | |
 
-### 2.2 后端框架
+### 2.2 Backend framework
 
-| 项 | 选型 | 版本 | 用途 |
+| Item | Selection | Version | Purpose |
 |----|------|-----|------|
 | Web | **FastAPI** | 0.115+ | |
-| ASGI | uvicorn | 0.32+ | --workers 多进程 |
-| 校验 | **Pydantic v2** | 2.9+ | |
+| ASGI | uvicorn | 0.32+ | --workers multi-process |
+| Verification | **Pydantic v2** | 2.9+ | |
 | Settings | Pydantic Settings | 2.6+ | |
 | ORM | **SQLAlchemy 2.0 async** | 2.0+ | |
-| DB 驱动 | asyncpg | 0.30+ | |
-| 迁移 | Alembic | 1.13+ | |
-| 鉴权 | FastAPI Users | 12.x | JWT + 短信 |
+| DB driver | asyncpg | 0.30+ | |
+| Migration | Alembic | 1.13+ | |
+| Authentication | FastAPI Users | 12.x | JWT + SMS |
 | Redis | redis-py async | 5.x | streams + pubsub + lua |
-| HTTP | **httpx** | 0.27+ | 全异步 |
-| 任务队列 | Celery | 5.4+ | broker=Redis |
-| 编排引擎 | **LangGraph** | 0.2+ | + langgraph-checkpoint-postgres |
-| LLM 网关 | **LiteLLM Proxy** | 1.50+ | 独立容器 |
+| HTTP | **httpx** | 0.27+ | Fully asynchronous |
+| Task queue | Celery | 5.4+ | broker=Redis |
+| Orchestration engine | **LangGraph** | 0.2+ | + langgraph-checkpoint-postgres |
+| LLM Gateway | **LiteLLM Proxy** | 1.50+ | Standalone Container |
 | MCP | mcp Python SDK + @modelcontextprotocol/sdk | latest | ADR-009 |
-| 日志 | **structlog** | 24+ | JSON 带 task_id |
-| 错误追踪 | Sentry SDK | 2.x | prod |
+| Log | **structlog** | 24+ | JSON with task_id |
+| Bug Tracking | Sentry SDK | 2.x | prod |
 | Tracing | OpenTelemetry | 1.27+ | Jaeger backend(V1.5)|
-| 代码质量 | **ruff** + **mypy --strict** | 0.7+ / 1.13+ | |
+| Code quality | **ruff** + **mypy --strict** | 0.7+ / 1.13+ | |
 
-### 2.3 数据 / 存储 / 中间件
+### 2.3 Data/Storage/Middleware
 
-| 项 | 选型 | 用途 |
+| Item | Selection | Usage |
 |----|------|------|
-| 关系库 | PostgreSQL 16 + pgvector 0.7+ | 主库,18 张表 |
-| 向量库(独立)| **Qdrant 1.13+** | 工作流轨迹 RAG(ADR-011)|
-| 缓存 / 队列 | Redis 7.2+ | |
-| 对象存储 prod | 阿里云 OSS | |
-| 对象存储 dev | MinIO | |
-| OSS 客户端 | oss2 / boto3 | |
-| 中文分词 | jieba 0.42+ | Skill 关键词检索 |
-| Embedding(检索)| **BGE-M3 自托管** | 1024 维 |
-| Embedding(偏好)| **bge-base-zh-v1.5** | 256 维 |
-| 短信 | 阿里云短信 | |
-| OCR | Tesseract + 阿里云 OCR | MCP server 包装 |
+| Relational database | PostgreSQL 16 + pgvector 0.7+ | Main database, 18 tables |
+| Vector library (standalone)| **Qdrant 1.13+** | Workflow trace RAG(ADR-011)|
+| Cache/Queue | Redis 7.2+ | |
+| Object storage prod | Alibaba Cloud OSS | |
+| Object storage dev | MinIO | |
+| OSS client | oss2 / boto3 | |
+| Chinese word segmentation | jieba 0.42+ | Skill keyword search |
+| Embedding(retrieval)| **BGE-M3 Self-hosted** | 1024 dimensions |
+| Embedding(preference)| **bge-base-zh-v1.5** | 256 dimensions |
+| SMS | Alibaba Cloud SMS | |
+| OCR | Tesseract + Alibaba Cloud OCR | MCP server packaging |
 
-### 2.4 前端
+### 2.4 Front-end
 
-| 项 | 选型 | 备注 |
+| Item | Selection | Remarks |
 |----|------|------|
-| 框架 | Next.js 15 App Router | RSC + Server Actions |
+| Framework | Next.js 15 App Router | RSC + Server Actions |
 | UI | shadcn/ui + Radix | |
-| 样式 | Tailwind v4 | |
-| 图标 | lucide-react | **无 emoji** |
-| 状态 | Zustand 4+ | |
-| 数据 | TanStack Query v5 | |
-| 表单 | react-hook-form + zod | |
-| 视频 | shaka-player + 原生 video | HITL 视频预览 |
-| 日期 | dayjs | |
+| Styles | Tailwind v4 | |
+| icons | lucide-react | **no emoji** |
+| Status | Zustand 4+ | |
+| Data | TanStack Query v5 | |
+| form | react-hook-form + zod | |
+| Video | shaka-player + native video | HITL video preview |
+| date | dayjs | |
 | Markdown | react-markdown + remark-gfm | |
-| 代码高亮 | shiki | |
-| WS | 原生 + 自封装重连 | 不用 socket.io |
+| code highlighting | shiki | |
+| WS | Native + self-encapsulated reconnection | No socket.io |
 | PWA | next-pwa | |
-| Lint | ESLint 9 + Prettier 3(或 Biome) | |
-| 单测 | Vitest 2 | |
+| Lint | ESLint 9 + Prettier 3 (or Biome) | |
+| Single test | Vitest 2 | |
 | E2E | Playwright 1.48 | |
-| 包管理 | pnpm workspace | |
+| Package management | pnpm workspace | |
 
-### 2.5 智能体系统(MCP-first)
+### 2.5 Agent System (MCP-first)
 
-工具不再写死在 Agent handler 里,而是以 **MCP server** 形式独立部署。
+The tool is no longer hard-coded in the Agent handler, but is deployed independently in the form of **MCP server**.
 
-V1 必上线 7 个 MCP server:
+V1 must go online with 7 MCP servers:
 
-| Server | 实现 | tools |
+| Server | Implementation | tools |
 |--------|------|------|
 | `mcp-search` | Python | web_search / web_fetch |
 | `mcp-image-tools` | Python | bg_remove / enhance / concat_long / quality_check |
@@ -142,13 +142,13 @@ V1 必上线 7 个 MCP server:
 | `mcp-oss` | Python | upload / download / sign_url |
 | `mcp-platform-publish`(V1.5)| TypeScript | douyin / xhs / wechat |
 
-**Agent handler 调用范式**:
+**Agent handler calling paradigm**:
 
 ```python
 from agents._common.mcp_client import mcp_client
 
-# 不允许:from tavily import TavilyClient
-# 允许:
+# Not allowed: from tavily import TavilyClient
+# allow:
 results = await mcp_client.call_tool(
     server="search",
     tool="web_search",
@@ -156,240 +156,240 @@ results = await mcp_client.call_tool(
 )
 ```
 
-**例外**:生成式模型(GPT-Image-2 / Veo-3 / Volcengine TTS)走 LiteLLM,**不**走 MCP。
+**Exception**: Generative models (GPT-Image-2 / Veo-3 / Volcengine TTS) use LiteLLM, **not** use MCP.
 
-详见 `docs/3_决策记录/MCP 集成方案.md`。
+See `docs/3_Decision Record/MCP Integration Solution.md` for details.
 
-### 2.6 模型路由(L1 编排层)
+### 2.6 Model routing (L1 orchestration layer)
 
-| 角色 | 模型 |
+| Role | Model |
 |------|------|
-| 主力 | `deepseek-v4-flash` |
-| 备 1 | `claude-haiku-4-5` |
-| 备 2 | `gpt-5-mini` |
+| Main force | `deepseek-v4-flash` |
+| Preparation 1 | `claude-haiku-4-5` |
+| Preparation 2 | `gpt-5-mini` |
 
-调用点:意图理解、Skill 匹配兜底、中断分类、Brief 维护、HITL 用户决定解析、回滚目标计算、MCP tool 决策。
+Call points: Intent understanding, Skill matching, interruption classification, Brief maintenance, HITL user decision analysis, rollback target calculation, MCP tool decision-making.
 
-### 2.7 模型路由(L2 执行层)
+### 2.7 Model routing (L2 execution layer)
 
-按 task_type 选模型,完整表见 `docs/4_附录/模型路由表.md`。短视频核心:
+Select a model by task_type. For the complete list, see `docs/4_Appendix/Model Routing Table.md`. Short video core:
 
-| task_type | 主力 | 备 |
+| task_type | Main | Backup |
 |-----------|------|-----|
 | short_video_script | deepseek-v4-pro | kimi-k2 / claude-sonnet-4-6 |
 | short_video_hook | claude-sonnet-4-6 | gpt-5 |
-| image_generate(真实)| gpt-image-2 | seedream-3 |
-| image_generate(卡通)| nano-banana-2 | seedream-3 |
+| image_generate(real)| gpt-image-2 | seedream-3 |
+| image_generate(cartoon)| nano-banana-2 | seedream-3 |
 | image_to_video | seedance-2 | kling-2 / veo-3 |
 | text_to_video | veo-3 | seedance-2 |
 | tts_generate | volcengine-tts | aliyun-tts |
-| audio_to_text | whisper-v3 自托管 | aliyun-asr |
-| bgm_select | (素材库,无 LLM)| - |
+| audio_to_text | whisper-v3 self-hosted | aliyun-asr |
+| bgm_select | (material library, no LLM) | - |
 
-### 2.8 部署 / DevOps
+### 2.8 Deployment / DevOps
 
-| 项 | 选型 |
+| Item | Selection |
 |----|------|
-| 容器 | Docker + buildx |
+| Containers | Docker + buildx |
 | dev | Docker Compose v2 |
-| prod | K8s 1.30+(阿里云 ACK)|
+| prod | K8s 1.30+(Alibaba Cloud ACK)|
 | GitOps | ArgoCD |
 | Helm | 3.16+ |
 | Secret | K8s Sealed Secrets |
-| 网关 | Nginx Ingress Controller |
-| CDN | 阿里云 CDN(视频 mp4 关键)|
-| 容器仓库 | 阿里云 ACR |
+| Gateway | Nginx Ingress Controller |
+| CDN | Alibaba Cloud CDN (video mp4 key) |
+| Container Warehouse | Alibaba Cloud ACR |
 | Celery dashboard | Flower 2+ |
-| LLM dashboard | LiteLLM 自带 |
+| LLM dashboard | LiteLLM comes with |
 
 ### 2.9 CI / CD
 
-| 项 | 选型 |
+| Item | Selection |
 |----|------|
 | CI | GitHub Actions |
-| CD | ArgoCD(main → staging 自动)|
-| 镜像扫描 | Trivy |
-| 灰度 | K8s rolling + ArgoCD |
+| CD | ArgoCD(main → staging automatic)|
+| Image Scan | Trivy |
+| Grayscale | K8s rolling + ArgoCD |
 | Lint(Python) | ruff check |
 | Type(Python) | mypy --strict |
-| 测试覆盖率 | 后端 70% / 前端 60% |
-| 特殊 CI 检查 | MCP integration / HITL Playwright / 飞轮信号 PR check / Prompt 回归 |
+| Test coverage | Backend 70% / Frontend 60% |
+| Special CI check | MCP integration / HITL Playwright / Flywheel signal PR check / Prompt regression |
 
-### 2.10 监控 / 可观测
+### 2.10 Monitoring / Observable
 
-| 维度 | 选型 |
+| Dimensions | Selection |
 |-----|------|
-| 指标 | Prometheus + Grafana |
-| 日志 | Loki + Promtail |
+| Metrics | Prometheus + Grafana |
+| Log | Loki + Promtail |
 | Tracing | Jaeger(V1.5)|
-| 错误追踪 | Sentry |
-| Uptime | 阿里云云监控 |
+| Error Tracking | Sentry |
+| Uptime | Alibaba Cloud Monitoring |
 
-### 2.11 测试
+### 2.11 Test
 
-| 维度 | 选型 |
+| Dimensions | Selection |
 |-----|------|
-| 后端单测 | pytest + pytest-asyncio + pytest-cov |
-| 集成 | pytest + httpx.AsyncClient + testcontainers |
-| Prompt 回归 | 自定义 pytest fixtures + yaml |
-| 负载 | locust |
+| Backend single test | pytest + pytest-asyncio + pytest-cov |
+| Integration | pytest + httpx.AsyncClient + testcontainers |
+| Prompt regression | Custom pytest fixtures + yaml |
+| load | locust |
 | E2E | Playwright |
-| 前端单测 | Vitest + @testing-library/react |
+| Front-end single test | Vitest + @testing-library/react |
 | Mock | respx + fakeredis + pytest-mcp |
 
-### 2.12 安全 / 合规
+### 2.12 Security/Compliance
 
-| 项 | 选型 |
+| Item | Selection |
 |----|------|
 | HTTPS | cert-manager + Let's Encrypt |
-| CORS | 严格白名单 |
-| 鉴权 | JWT in Authorization header |
-| 内容安全 | 阿里云内容安全 |
-| 速率限制 | slowapi(IP 分组,默认 120 RPM;`/sms/send`、`/login` 再叠加更严配额) |
-| 备案 | 算法备案 + 生成式 AI 服务备案 |
+| CORS | Strict whitelist |
+| Authentication | JWT in Authorization header |
+| Content Security | Alibaba Cloud Content Security |
+| Rate limit | slowapi (IP grouping, default 120 RPM; `/sms/send`, `/login` and then superimpose stricter quotas) |
+| Filing | Algorithm Filing + Generative AI Service Filing |
 
-### 2.13 不引入这些(挡再讨论)
+### 2.13 Do not introduce these (discuss later)
 
-| 没用 | 理由 |
+| Useless | Reason |
 |------|-----|
-| Temporal | V1 Celery 够 |
-| Kafka | Redis Streams 够 |
-| ElasticSearch | Qdrant + pgvector + pg_trgm 够 |
+| Temporal | V1 Celery Enough |
+| Kafka | Redis Streams Enough |
+| ElasticSearch | Qdrant + pgvector + pg_trgm is enough |
 | Socket.io | FastAPI WS + Redis Pub/Sub |
-| GraphQL | REST 够 |
-| Istio | K8s 原生 Service 够 |
-| Vault | Sealed Secrets 够 |
+| GraphQL | REST Enough |
+| Istio | K8s native service is enough |
+| Vault | Sealed Secrets Enough |
 | React Native | V1 PWA |
 
 ---
 
-## 3. 主编排 9 子模块概览(v3.0)
+## 3. Overview of main orchestration 9 sub-modules (v3.0)
 
-| # | 子模块 | 调 LLM | 主要职责 | 模型 |
+| # | Submodules | Tuning LLM | Main responsibilities | Model |
 |---|--------|-------|---------|------|
-| 1 | 意图理解器 | ✅ | 自然语言 → 意图 JSON(含模式切换识别)| L1 |
-| 2 | Skill 匹配器 | 99% 不调 | L1 关键词 / L2 向量 / L3 LLM | L1 兜底 |
-| 3 | 输入校验器 | ❌ | 字段是否齐全 | - |
-| 4 | 澄清生成器 | 大部分不调 | 4 种澄清形式 | L1 |
-| 5 | 任务编排器 | ❌ | Jinja2 渲染 + AgentTask 打包 | - |
-| 6 | 中断处理器 | ✅ | 8 类中断分类(含 V1 中断 C 回滚)| L1 |
-| **7** | **三模式管理器** | ✅(brief)| **Plan / Ask / Auto 同群切换** + brief 维护 | L1 |
-| 8 | HITL 网关管理器 | 半 | 在关键节点暂停等待用户 | L1 |
-| **9** | **Agent 互动编排器**(v3.0)| ✅ | 派活时编排 Agent 间交接对话 | L1 |
+| 1 | Intent Understander | ✅ | Natural Language → Intent JSON (including mode switching recognition) | L1 |
+| 2 | Skill Matcher | 99% Improper | L1 Keyword / L2 Vector / L3 LLM | L1 Digging |
+| 3 | Input validator | ❌ | Are the fields complete | - |
+| 4 | Clarification Generator | Most Not Adjusted | 4 Clarification Forms | L1 |
+| 5 | Task Orchestrator | ❌ | Jinja2 rendering + AgentTask packaging | - |
+| 6 | Interrupt handler | ✅ | 8 types of interrupt classification (including V1 interrupt C rollback) | L1 |
+| **7** | **Three-mode manager** | ✅(brief)| **Plan / Ask / Auto group switching** + brief maintenance | L1 |
+| 8 | HITL Gateway Manager | Half | Pause waiting for user at critical node | L1 |
+| **9** | **Agent Interaction Orchestrator**(v3.0)| ✅ | Arrange handover conversations between Agents when dispatching | L1 |
 
-详细实现:`docs/2_工程实现/主编排 Agent 实现指南.md`
+Detailed implementation: `docs/2_Engineering Implementation/Main Orchestration Agent Implementation Guide.md`
 
 ---
 
-## 4. 4 个分任务 Agent 边界(v3.0 ADR-001-rev)
+## 4. 4 sub-task Agent boundaries (v3.0 ADR-001-rev)
 
-| Agent | 角色 | 队列 | 主要 task_type | 长任务 |
+| Agent | Role | Queue | Main task_type | Long task |
 |-------|-----|------|--------------|------|
-| 1 | 研究员/文案师 | `agent_tasks:text` | short/long/structured_writing / web_search | 否 |
-| **2** | **文档专员** | `agent_tasks:document` | pptx_assemble / xlsx_assemble / pdf_extract / image_concat_long | 否 |
-| **3** | **设计师** | `agent_tasks:image` | image_generate / batch_generate / image_download / quality_check | 否 |
-| **4** | **影音师** | `agent_tasks:av` | text_to_video / image_to_video / video_compose / tts / bgm_select | **是**(Celery)|
+| 1 | Researcher/Copywriter | `agent_tasks:text` | short/long/structured_writing / web_search | No |
+| **2** | **Document Specialist** | `agent_tasks:document` | pptx_assemble / xlsx_assemble / pdf_extract / image_concat_long | No |
+| **3** | **Designer** | `agent_tasks:image` | image_generate / batch_generate / image_download / quality_check | No |
+| **4** | **AV** | `agent_tasks:av` | text_to_video / image_to_video / video_compose / tts / bgm_select | **YES**(Celery)|
 
-**+ 2 个支持 Agent**(常驻主会话,ADR-013):
+**+ 2 supported Agents** (resident master session, ADR-013):
 
-| 角色 | 实现 | 触发 |
+| Role | Implementation | Trigger |
 |------|-----|------|
-| HR | 主编排在主会话用 HR_SYSTEM_PROMPT 渲染 | intent_type=team_management |
-| 财务经理 | 主编排在主会话用 FINANCE_SYSTEM_PROMPT 渲染 + 调 QuotaService | intent_type=quota_query |
+| HR | The main choreographer is rendered in the main session using HR_SYSTEM_PROMPT | intent_type=team_management |
+| Financial Manager | The main orchestrator uses FINANCE_SYSTEM_PROMPT to render + call QuotaService in the main session | intent_type=quota_query |
 
-**协作规则**:
-- 不互相调用(ADR-002)
-- 跨能力步骤在 Skill YAML 显式拆步
-- 跨语言通信走 Redis Streams + AgentTask / AgentResult
+**Collaboration Rules**:
+- Do not call each other (ADR-002)
+- Cross-ability steps are explicitly decomposed in Skill YAML
+- Cross-language communication uses Redis Streams + AgentTask / AgentResult
 
-详细 handler 实现:`docs/2_工程实现/4 个分任务 Agent 实现指南.md`
+Detailed handler implementation: `docs/2_project implementation/4 sub-task Agent implementation guide.md`
 
 ---
 
-## 5. 数据库 schema(18 张表概览)
+## 5. Database schema (overview of 18 tables)
 
-### 用户与权限
-- `users`(基本信息 + plan)
-- `user_preferences`(含 `preference_vec VECTOR(256)`,信号 2)
+### Users and Permissions
+- `users`(basic information + plan)
+- `user_preferences` (including `preference_vec VECTOR(256)`, signal 2)
 
-### 会话与上下文(v3.0 ADR-014)
-- `context_pools`(每群一个 pool)
-- `conversations`(mode = main_session / **group** / private_chat;**新增 `work_mode` 列** = plan / ask / auto)
-- ~~`conversation_links`~~(已废,v3.0 不再有讨论群衍生工作群关系)
-- `mode_switch_log`(模式切换审计,可选)
+### Sessions and Contexts (v3.0 ADR-014)
+- `context_pools` (one pool per group)
+- `conversations`(mode = main_session / **group** / private_chat;**Added `work_mode` column** = plan / ask / auto)
+- ~~`conversation_links`~~(obsolete, v3.0 no longer has a discussion group derivative work group relationship)
+- `mode_switch_log` (mode switching audit, optional)
 
-### 消息
+### information
 - `messages`
 
 ### Skill
 - `skills`
-- `skill_embeddings`(pgvector,Skill L2 检索)
+- `skill_embeddings`(pgvector,Skill L2 retrieval)
 - `user_skill_visibility`
 
-### 任务执行
+### Task execution
 - `tasks`
 - `task_steps`
-- `artifacts`(支持版本号,中断 C 旧产物保留)
+- `artifacts` (support version number, interrupt C old products are retained)
 
-### 配额
+### Quota
 - `quota_usage`
 
-### BGM 素材
+### BGM material
 - `bgm_library`
 
-### v2.0 新增 5 张
-- `hitl_gates`(HITL gate 历史)
-- `workflow_traces`(信号 1,Qdrant 镜像)
-- `prompt_improvement_candidates`(信号 3,Reflexion)
-- `skill_drafts`(信号 4,创作者飞轮 V1.5)
-- `user_preferences.preference_vec` 列(信号 2)
+### v2.0 added 5 new pictures
+- `hitl_gates`(HITL gate history)
+- `workflow_traces`(signal 1, Qdrant mirror)
+- `prompt_improvement_candidates`(signal 3,Reflexion)
+- `skill_drafts`(Signal 4, Creator Flywheel V1.5)
+- `user_preferences.preference_vec` column (signal 2)
 
-完整 DDL:`docs/5_工程基建/V1 工程基建清单.md §4`
+Complete DDL:`docs/5_Engineering Infrastructure/V1 Engineering Infrastructure List.md §4`
 
 ---
 
-## 6. 前端架构
+## 6. Front-end architecture
 
-### 6.1 关键页面
+### 6.1 Key pages
 
-- `/`:主会话(总裁助理)
-- `/[conversationId]`:群聊(三栏)
-- `/private/[agentId]`:私聊单 Agent
-- `/materials`:素材库 + 知识库
-- `/academy`:AI 学院
-- `/market`:技能市场
-- `/results`:成果库
-- `/settings`:设置
+- `/`: Main session (assistant to the president)
+- `/[conversationId]`: Group chat (three columns)
+- `/private/[agentId]`: Private chat Agent
+- `/materials`: material library + knowledge base
+- `/academy`:AI Academy
+- `/market`: Skill market
+- `/results`: results library
+- `/settings`: settings
 
-### 6.2 Zustand store 切片
+### 6.2 Zustand store slice
 
-| store | 职责 |
+| store | responsibilities |
 |-------|-----|
-| `conversation` | 会话列表 + 当前会话 |
-| `task` | 任务进度 / steps / streaming |
-| `ws` | WebSocket 连接 + 重连 + last_event_id |
-| **`hitl`** | HITL gate 队列 / 用户决定 |
-| `user` | 当前用户 / 偏好 |
+| `conversation` | Conversation list + current session |
+| `task` | Task progress / steps / streaming |
+| `ws` | WebSocket connection + reconnect + last_event_id |
+| **`hitl`** | HITL gate queue / user decision |
+| `user` | Current user/preferences |
 
-### 6.3 关键交互组件
+### 6.3 Key interactive components
 
-- 三栏布局(左导航 / 中聊天 / 右执行流)
-- 群成员栏(顶部,总裁助理永远第 1 位)
-- 澄清气泡(浅绿底,4 种形式)
-- 产物预览卡片([下载] [追问] [改一下])
-- 右栏执行流(流式追加,3 种状态图标)
-- @ 调用(@人 / @文件 / @提示词)
-- **HITL 审核组件 3 个**(ScriptApproval / ImageSelection / VideoFinalReview)
+- Three-column layout (left navigation / middle chat / right execution flow)
+- Group members column (top, the president’s assistant is always first)
+- Clarifying bubbles (light green base, 4 forms)
+- Product preview card ([Download] [Question] [Change])
+- Right column execution flow (streaming append, 3 status icons)
+- @call(@人/@FILE/@prompt word)
+- **HITL review components 3** (ScriptApproval / ImageSelection / VideoFinalReview)
 
-### 6.4 视觉规范
+### 6.4 Visual specifications
 
-- 唯一强调色:微信绿 #07C160
-- 讨论群浅蓝头像(#E3F2FD) + 蓝色"讨论"徽章
-- 工作群浅绿头像(#E8F5E9) + 微信绿"工作"徽章
-- 头像统一"我的世界"像素风/NFT 风格
-- 线条 SVG 图标,**无 emoji**
+- The only accent color: WeChat Green #07C160
+- Discussion group light blue avatar (#E3F2FD) + blue "Discussion" badge
+- Work group light green avatar (#E8F5E9) + WeChat green "work" badge
+- The avatar unifies the "Minecraft" pixel style/NFT style
+- Line SVG icons, **no emoji**
 
-### 6.5 WS 事件类型
+### 6.5 WS event type
 
 ```typescript
 type WSEvent =
@@ -412,28 +412,28 @@ type WSEvent =
 
 ---
 
-## 7. 关键 API 端点
+## 7. Key API endpoints
 
 ```
-# 鉴权
+# Authentication
 POST /api/auth/sms/send
 POST /api/auth/login
 POST /api/auth/refresh
 POST /api/auth/logout
 GET  /api/auth/me
 
-# 会话(v3.0 ADR-014)
+# Session (v3.0 ADR-014)
 GET  /api/conversations
 POST /api/conversations              Body: {mode, work_mode, skill_id?, name?}
 GET  /api/conversations/:id
-POST /api/conversations/:id/switch-work-mode   ← v3.0 替代 derive-work-group/back-to-discuss
+POST /api/conversations/:id/switch-work-mode ← v3.0 replacement derive-work-group/back-to-discuss
                                                 Body: {target: plan|ask|auto, triggered_by: user|orchestrator}
 
-# 上下文池
+#Context pool
 GET  /api/context-pools/:id
 PATCH /api/context-pools/:id/brief
 
-# 任务
+# Task
 GET  /api/tasks/:id
 POST /api/tasks/:id/answer-clarification
 POST /api/tasks/:id/interrupt
@@ -444,12 +444,12 @@ POST /api/tasks/:id/hitl_gates/:gate_id/approve
 POST /api/tasks/:id/hitl_gates/:gate_id/modify
 POST /api/tasks/:id/hitl_gates/:gate_id/rollback
 
-# 飞轮(v2.0)
+# Flywheel(v2.0)
 GET  /api/users/:id/preference_vector
 GET  /api/users/:id/skill_drafts
 POST /api/skill_drafts/:id/publish
 
-# 上传
+# Upload
 POST /api/upload/sign
 POST /api/upload/confirm
 
@@ -459,27 +459,27 @@ WS   /ws?token=xxx&last_event_id=xxx
 
 ---
 
-## 8. 部署架构
+## 8. Deployment architecture
 
-### 8.1 dev(Docker Compose 一键)
+### 8.1 dev (Docker Compose one-click)
 
 ```
 postgres + redis + minio + qdrant + litellm-mock
     ↓
 backend(uvicorn)
     ↓
-agents × 4(独立容器)
+agents × 4 (independent container)
     ↓
-mcp_servers × 7(独立容器)
+mcp_servers × 7 (independent container)
     ↓
-celery_worker_video(GPU 节点 / CPU dev 也行)
+celery_worker_video (GPU node/CPU dev is also acceptable)
     ↓
 frontend(next dev)
 ```
 
 ### 8.2 prod(K8s)
 
-| 服务 | 副本 | 资源 |
+| Services | Copies | Resources |
 |------|-----|------|
 | backend | 4 | 1c / 2G |
 | litellm-proxy | 2 | 0.5c / 1G |
@@ -488,120 +488,120 @@ frontend(next dev)
 | agent-av | 2 | 4c / 8G + GPU |
 | agent-document | 2 | 2c / 4G |
 | celery-video | 4 | 4c / 8G + GPU |
-| mcp-search/oss/document/audio | 各 2 | 0.5-2c / 1-4G |
+| mcp-search/oss/document/audio | 2 each | 0.5-2c / 1-4G |
 | mcp-image-tools | 2 | 1c / 2G + GPU |
 | mcp-video-tools | 2 | 4c / 8G + GPU |
 | qdrant | 3(StatefulSet)| 2c / 8G + SSD |
 | bge-m3-service | 2 | 4c / 8G + GPU |
 | frontend(SSR)| 2 | 1c / 2G |
 
-V1 总资源:约 30 vCPU / 80 GB 内存 + 4 个 GPU 节点。
+Total V1 resources: ~30 vCPU / 80 GB memory + 4 GPU nodes.
 
 ---
 
-## 9. 跨语言 Schema 同步
+## 9. Cross-language Schema synchronization
 
-**后端是源**:Pydantic 模型 in `backend/app/schemas/`
+**Backend is the source**: Pydantic model in `backend/app/schemas/`
 
-**前端生成**:`pnpm gen:api` 跑 `openapi-typescript` 生成 `frontend/lib/api-types.ts`
+**Front-end generation**:`pnpm gen:api` runs `openapi-typescript` to generate `frontend/lib/api-types.ts`
 
-**MCP server schema**:用 `mcp.types` Python SDK 自动生成 JSON Schema
+**MCP server schema**: Use `mcp.types` Python SDK to automatically generate JSON Schema
 
-CI 强制:PR 修改 `schemas/` 必须重跑 `pnpm gen:api` 并 commit。
+CI mandatory: PR modification to `schemas/` must re-run `pnpm gen:api` and commit.
 
 ---
 
-## 10. 详细 Sprint 路径
+## 10. Detailed Sprint Path
 
-每 Sprint 的 acceptance 见 CLAUDE.md §4。本文给出详细 deliverable:
+See CLAUDE.md §4 for per-Sprint acceptance. This article gives detailed deliverable:
 
-### Sprint 0(1 周):基础设施
+### Sprint 0 (1 week): Infrastructure
 
-- 仓库目录骨架(参考本文 §1)
+- Warehouse directory skeleton (refer to §1 of this article)
 - `../deploy/production/docker-compose.yml`
-- `backend/alembic` + 18 张表 migration
+- `backend/alembic` + 18 tables migration
 - `backend/app/config/{settings,prompts,templates}.py`
-- `backend/app/router.py`(LiteLLM 客户端)
-- `backend/app/mcp_client.py`(MCP 客户端)
+- `backend/app/router.py` (LiteLLM client)
+- `backend/app/mcp_client.py`(MCP client)
 - `backend/app/api/auth.py`
 - `backend/app/ws/`
 
-### Sprint 1(1 周):MCP servers
+### Sprint 1 (1 week):MCP servers
 
 - `mcp_servers/search/`(Tavily + Playwright)
-- `mcp_servers/oss/`(MinIO 兼容)
-- `mcp_servers/document_tools/`(pdf 基础)
-- 集成测试 fixtures
+- `mcp_servers/oss/`(MinIO compatible)
+- `mcp_servers/document_tools/`(pdf basic)
+- Integration test fixtures
 
-### Sprint 2(1.5 周):主编排框架
+### Sprint 2 (1.5 weeks): Main orchestration framework
 
-- 8 子模块骨架
+- 8 sub-module skeleton
 - `services/{conversation,context_pool,brief_builder,quota,oss,hitl,flywheel}.py`
-- 端到端意图理解 → Skill 匹配 → 输入校验 跑通
+- End-to-end intent understanding → Skill matching → Input verification and run-through
 
-### Sprint 3(1.5 周):Agent 框架 + 短视频 happy path
+### Sprint 3 (1.5 weeks): Agent framework + short video happy path
 
 - `agents/_common/`
-- 4 个 Agent main.py
-- 各 1 个 happy-path handler
-- 短视频任务端到端跑通(全 mock)
+- 4 Agent main.py
+- 1 happy-path handler each
+- End-to-end running of short video tasks (all mocks)
 
-### Sprint 4(1 周):Skill + HITL + 飞轮
+### Sprint 4 (1 week): Skill + HITL + Flywheel
 
 - `skills/short_video.yaml`(v3.0 V1 hero)
 - `skills/ecommerce_detail_image.yaml`
-- Skill 编译器
-- HITL 网关后端 + 中断 C 回滚
-- `flywheel/` 4 类信号 pipeline
+- Skill Compiler
+- HITL gateway backend + interrupt C rollback
+- `flywheel/` 4 types of signal pipeline
 
-### Sprint 5(2 周):前端
+### Sprint 5 (2 weeks): Frontend
 
-- Next.js 15 骨架
-- Zustand store 5 个切片
-- WS 客户端
-- 三栏布局 + 群聊页 + 右栏执行流
-- HITL 审核组件 3 个
-- 模式选择 UI
+- Next.js 15 skeleton
+- Zustand store 5 slices
+- WS client
+- Three-column layout + group chat page + right column execution flow
+- 3 HITL audit components
+- Mode selection UI
 
-### Sprint 6(1 周):联调 + 上线
+### Sprint 6 (1 week): joint debugging + launch
 
-- CI(含 MCP 集成 + HITL Playwright + 飞轮 PR check)
+- CI (including MCP integration + HITL Playwright + Flywheel PR check)
 - K8s manifests
-- 监控大盘
-- E2E 跑 10 次任务
+- Monitor the market
+- E2E runs 10 missions
 
-**总计 8 周 → V1-P0**
+**8 weeks total → V1-P0**
 
 ---
 
-## 11. 性能与成本目标
+## 11. Performance and Cost Targets
 
-| 指标 | V1 目标 |
+| Metrics | V1 Goals |
 |-----|--------|
-| 主编排单调用延迟 | < 1s |
-| 主编排单任务总成本 | $0.001-0.003 |
-| 短视频单条总成本(模型 + 工具)| **¥6-8**(优化后)|
-| 详情图单张总成本 | ¥2-3 |
-| 视频任务 P95 端到端时间 | < 8 分钟 |
-| HITL gate 用户响应 P50 | < 2 分钟 |
-| 飞轮信号沉淀率 | 100% |
-| 系统可用性 | 99.5% |
+| Main arranger call delay | < 1s |
+| Total cost of single task for main orchestration | $0.001-0.003 |
+| Total cost per short video (model + tool) | **¥6-8** (after optimization) |
+| Total cost per detailed picture | ¥2-3 |
+| Video task P95 end-to-end time | < 8 minutes |
+| HITL gate User Response P50 | < 2 minutes |
+| Flywheel signal precipitation rate | 100% |
+| System Availability | 99.5% |
 
 ---
 
-## 12. 相关详细文档(深入查)
+## 12. Relevant detailed documents (in-depth search)
 
-| 主题 | 文档路径 |
+| Topic | Document Path |
 |------|---------|
-| 主编排详细实现 | `docs/2_工程实现/主编排 Agent 实现指南.md` |
-| 4 Agent 详细实现 | `docs/2_工程实现/4 个分任务 Agent 实现指南.md` |
-| 三种模式技术细节 | `docs/2_工程实现/三种模式技术实现.md` |
-| MCP 集成方案 | `docs/3_决策记录/MCP 集成方案.md` |
-| 数据飞轮设计 | `docs/3_决策记录/数据飞轮设计.md` |
-| 商业模型 | `docs/3_决策记录/商业模型与单位经济.md` |
-| Skill YAML 模板 | `docs/3_决策记录/Skill YAML 模板.md` |
-| 系统 Prompt 全集 | `docs/4_附录/系统 Prompt 全集.md` |
-| 模型路由表 | `docs/4_附录/模型路由表.md` |
-| V1 工程基建清单 | `docs/5_工程基建/V1 工程基建清单.md` |
-| 产品文档 | `docs/0_总览/产品功能与交互文档.md` |
-| ADR 全集 | `docs/CONSTITUTION.md` 与 `docs/3_决策记录/开放问题与决议.md` |
+| Detailed implementation of main orchestration | `docs/2_Project Implementation/Main Orchestration Agent Implementation Guide.md` |
+| 4 Agent detailed implementation | `docs/2_engineering implementation/4 sub-task Agent implementation guide.md` |
+| Technical details of three modes | `docs/2_Engineering implementation/Three modes technical implementation.md` |
+| MCP Integration Solution | `docs/3_Decision Record/MCP Integration Solution.md` |
+| Data Flywheel Design | `docs/3_Decision Record/Data Flywheel Design.md` |
+| Business Model | `docs/3_Decision Record/Business Model and Unit Economics.md` |
+| Skill YAML Template | `docs/3_Decision Record/Skill YAML Template.md` |
+| System Prompt Complete Collection | `docs/4_Appendix/System Prompt Complete Collection.md` |
+| Model routing table | `docs/4_Appendix/Model routing table.md` |
+| V1 project infrastructure list | `docs/5_project infrastructure/V1 project infrastructure list.md` |
+| Product Documentation | `docs/0_Overview/Product Function and Interaction Documentation.md` |
+| ADR Complete Works | `docs/CONSTITUTION.md` and `docs/3_Decision Record/Open Issues and Resolutions.md` |

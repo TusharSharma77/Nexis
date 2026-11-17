@@ -1,34 +1,38 @@
 # Nexis
 
 > **Nexis** is an event-driven multi-agent collaborative workspace that unifies chat-based multi-agent interaction, LangGraph master orchestration, Redis Streams task queues, Model Context Protocol (MCP) tools, durable SSE replay, and Human-in-the-Loop (HITL) workflows.
->
-> **Nexis** 是一个以群聊为交互入口的多 Agent 协同工作平台。系统以统一的 LangGraph 主编排器为中枢，融合 Next.js 15 现代化前端、Skill 技能市场、Redis Streams Agent 异步任务总线、MCP 工具服务、持久化事件流（UserEvent）、SSE 稳定回放与企业级人机协同（HITL）。
 
-当前仓库默认支持 `LITELLM_MOCK=true` 的无密钥快速开发与测试模式；真实模型、短信服务、对象存储和云端发布可在服务端按需配置凭据。
+Nexis supports zero-key development and testing out of the box using `LITELLM_MOCK=true`. Real LLMs, SMS authentication, S3-compatible object storage, and cloud publishing services can be configured in your environment as needed.
 
-## 当前功能
+---
 
-- 短信验证码登录、JWT、刷新和一次性 OTP 消费。
-- 主会话、普通群聊、单 Agent 私聊、`@Agent`、Plan/Ask/Auto 模式。
-- 唯一 LangGraph 主编排器，按 `AgentTask`/`AgentResult` 契约通过 Redis Streams 调度四类 Worker。
-- 文字、文档、图像、音视频 Agent；工具调用通过 MCP 服务边界完成。
-- YAML Skill 校验、匹配、详情、安全元数据、安装、启用和停用。
-- HITL、任务步骤、成果与 Agent 状态展示。
-- 统一 `UserEvent`：PostgreSQL 持久化、Redis Pub/Sub、进程内 fallback、WebSocket 和 SSE 共用发布入口。
-- Bearer SSE、心跳、稳定事件 ID、`Last-Event-ID` 回放、前端去重和断线重连。
-- Next.js 15 正式前端、公开产品页、显式 mock 模式、生成式 OpenAPI TypeScript 类型。
+## Key Features
 
-## 架构
+- **Multi-Agent Collaboration**: Work with specialized AI agents in a shared group chat or open 1-on-1 private channels while retaining synchronized project context.
+- **Master Orchestrator**: LangGraph-powered coordinator that parses intent, matches skills, plans tasks, and dispatches sub-tasks to workers via Redis Streams.
+- **Specialized Worker Agents**: Dedicated workers for copywriting, document processing, visual asset generation, and background audio/video compilation (Celery).
+- **Execution Modes**:
+  - `Ask`: Clarifies ambiguous user requirements before execution.
+  - `Plan`: Generates a structured multi-step execution plan for human review.
+  - `Auto`: Autonomously executes tasks in parallel with live status reporting.
+- **Human-in-the-Loop (HITL)**: Built-in approval gates for high-cost actions (e.g., batch image generation, video rendering, publishing).
+- **Extensible Skill Market**: Modular YAML playbook definitions with parameter validation, permission checks, and lifecycle management (install/enable/disable).
+- **Resilient Event Architecture**: Unified `UserEvent` pipeline with PostgreSQL persistence, Redis Pub/Sub broadcast, in-process fallback, and SSE with `Last-Event-ID` auto-reconnect and replay.
+- **Modern Full-Stack Experience**: Next.js 15 frontend, Tailwind CSS, TanStack Query, generated OpenAPI TypeScript types, and mobile-responsive drawer navigation.
+
+---
+
+## Architecture
 
 ```mermaid
 flowchart LR
-    UI["Next.js 前端"] -->|"REST + JWT"| API["FastAPI"]
-    UI <-->|"SSE / WebSocket"| EVENTS["统一 UserEvent"]
-    API --> PIPE["消息管线"]
-    PIPE --> ORCH["LangGraph 主编排"]
+    UI["Next.js 15 UI"] -->|"REST + JWT"| API["FastAPI"]
+    UI <-->|"SSE / WebSocket"| EVENTS["Unified UserEvents"]
+    API --> PIPE["Message Pipeline"]
+    PIPE --> ORCH["LangGraph Orchestrator"]
     ORCH -->|"AgentTask"| REDIS[("Redis Streams")]
-    REDIS --> WORKERS["核心模式：1 个合并 Agent Worker"]
-    WORKERS -.->|"生产可选"| TOOLS["独立 Worker + MCP 工具服务"]
+    REDIS --> WORKERS["Core Agent Workers"]
+    WORKERS -.->|"Tool Execution"| TOOLS["MCP Tool Servers"]
     WORKERS -->|"AgentResult"| REDIS
     ORCH --> PG[("PostgreSQL + Alembic")]
     API --> PG
@@ -38,26 +42,36 @@ flowchart LR
     EVENTS --> REDIS
 ```
 
-业务层只调用统一事件发布器，不分别维护 SSE 和 WebSocket 广播逻辑。前端不执行 Agent 编排，只负责 API 调用、状态展示、HITL 和实时事件消费。
+The business layer communicates exclusively through the unified `EventPublisher`. The frontend does not execute agent logic directly; it handles API requests, state rendering, HITL confirmation cards, and real-time SSE stream consumption.
 
-## 目录
+---
+
+## Repository Structure
 
 ```text
-backend/                    FastAPI、数据模型、Alembic、Skill 与单元测试
-agents/agents/              LangGraph 主编排与各类 Agent Worker
-agents/mcp_servers/         MCP 工具服务 (搜索、视觉、文档、音视频)
-frontend/                   Next.js 15 现代化交互前端、Vitest、Playwright
-backend/infrastructure/     PostgreSQL/Redis/MinIO/Qdrant/LiteLLM 设施配置
-compose.core.yml            轻量核心开发环境（PostgreSQL + Redis）
-deploy/production/          生产集群与 Kubernetes 编排方案
-scripts/                    开发与运维控制脚本 (core.ps1)
-test/                       跨 Agent 协同与真实工作流测试
-.github/workflows/          阻断式 CI/CD 自动化流水线
+backend/                    FastAPI API, SQLAlchemy models, Alembic migrations, skills, unit tests
+agents/agents/              LangGraph master orchestrator and worker agent implementations
+agents/mcp_servers/         Model Context Protocol (MCP) tool servers (search, vision, audio/video)
+frontend/                   Next.js 15 frontend, TanStack Query, Vitest, Playwright E2E tests
+backend/infrastructure/     Docker Compose configurations (PostgreSQL, Redis, MinIO, Qdrant)
+compose.core.yml            Minimal local development stack (PostgreSQL + Redis)
+deploy/production/          Production Dockerfiles, Compose stacks, and Kubernetes manifests
+scripts/                    Lifecycle automation and development management scripts (core.ps1)
+test/                       Cross-agent integration and workflow test suites
+.github/workflows/          Automated CI/CD pipeline and code quality validation
 ```
 
-## 本地启动
+---
 
-要求：Python 3.12、uv 0.11.x、Node 20+、pnpm 9.15.9、Docker Compose。
+## Quickstart
+
+### Prerequisites
+- Python 3.12+
+- `uv` (fast Python package manager)
+- Node.js 20+ & `pnpm` 9.15.9+
+- Docker Compose
+
+### Starting Locally
 
 ```powershell
 .\scripts\core.ps1 setup
@@ -65,126 +79,94 @@ test/                       跨 Agent 协同与真实工作流测试
 .\scripts\core.ps1 status
 ```
 
-The local core command explicitly enables a dev/test-only local guest session. Opening the frontend root URL enters the real workspace without SMS; the frontend still uses its normal JWT, FastAPI, PostgreSQL, Redis, and Agent paths. Production, staging, and ordinary development starts leave this disabled.
+The setup script provisions core databases in Docker, installs dependencies, runs database migrations, and starts the services:
+- **Frontend**: `http://localhost:3000` (auto-logs into a local guest session)
+- **Backend API**: `http://localhost:8001` (interactive docs at `/docs`)
 
-### 电商专业群
+---
 
-电商详情图不是第二个页面或第二套工作流，而是同一个群聊中的专业协作：总裁助理负责澄清和交付，Agent 1 负责中文文案，Agent 3 负责商品图生成，Agent 2 使用 Pillow 拼接详情长图。该群不包含影音师、HR 或财务经理。
+## Development Modes
 
-真实路径使用 DeepSeek、火山方舟 Seedream 和 Pillow。每一次图片调用都会先在群里显示精确张数、模型和预估金额；用户点击确认后才会发起这一次请求。没有 `ARK_API_KEY` 时任务明确失败，不会伪造图片、重试或切换到海外模型。详见 [`deploy/production/README.md`](deploy/production/README.md)。
-
-脚本会打印实际 URL，后端默认从 `8001` 开始查找空闲端口，前端默认从 `3000` 开始，不会停止不属于本项目的进程。详细说明见 [`GETTING_STARTED.md`](GETTING_STARTED.md)。
-
-默认 `Procfile` 只启动后端、合并 Agent worker 和前端。四个独立 Worker、MCP、MinIO、Qdrant、LiteLLM 网关和 K8s 都属于可选生产配置，见 [`deploy/production/README.md`](deploy/production/README.md)。
-
-### Mock 模式
-
-根 `.env.example` 默认包含：
+### Mock Mode (Default)
+By default, the root `.env.example` includes:
 
 ```dotenv
 LITELLM_MOCK=true
 SMS_DEV_MODE=true
 ```
 
-开发 OTP 为 `123456`。前端 mock 只能显式开启：
+Development verification code is fixed to `123456`. Frontend mock mode can be toggled explicitly:
 
 ```powershell
 $env:NEXT_PUBLIC_MOCK_MODE='true'
 pnpm dev
 ```
 
-生产默认路径不会在 API 失败时静默退回 mock 数据。
+### Production Mode
+Set `LITELLM_MOCK=false` and configure your LiteLLM Proxy or direct provider API keys (OpenAI, Anthropic, DeepSeek, etc.). Configure production SMS credentials (`SMS_DEV_MODE=false`), object storage bucket credentials, and secret tokens in `.env`.
 
-### 真实服务模式
+---
 
-将 `LITELLM_MOCK=false`，配置 LiteLLM Proxy 及其服务端模型凭据。生产/预发布必须设置 `SMS_DEV_MODE=false`，并提供 `ALIYUN_ACCESS_KEY`、`ALIYUN_SECRET_KEY`、签名和模板；缺少任一项或误开通用开发验证码时，配置加载会直接失败。对象存储需要 OSS/MinIO 凭据。任何供应商密钥都不得使用 `NEXT_PUBLIC_*` 暴露到浏览器。
+## Environment Variables
 
-## 环境变量
+| Group | Key Variables |
+| :--- | :--- |
+| **Runtime** | `ENV`, `DEBUG`, `LOG_LEVEL` |
+| **Data Stores** | `DATABASE_URL`, `REDIS_URL`, `CELERY_BROKER_URL`, `CELERY_RESULT_BACKEND` |
+| **Security & Auth** | `JWT_SECRET`, `JWT_EXPIRE_HOURS`, `SMS_DEV_MODE`, `SMS_OTP_TTL_SECONDS`, `LOCAL_GUEST_ACCESS` |
+| **Event Streaming** | `SSE_HEARTBEAT_SECONDS`, `WS_HEARTBEAT_SECONDS`, `CORS_ORIGINS` |
+| **Model Gateway** | `LITELLM_URL`, `LITELLM_API_KEY`, `LITELLM_MOCK` |
+| **Tools (MCP)** | `MCP_SEARCH_URL`, `MCP_IMAGE_TOOLS_URL`, `MCP_VIDEO_TOOLS_URL`, `MCP_AUDIO_TOOLS_URL`, `MCP_DOCUMENT_TOOLS_URL` |
+| **Storage** | `OSS_ENDPOINT`, `OSS_BUCKET`, `OSS_ACCESS_KEY`, `OSS_SECRET_KEY` |
+| **Frontend** | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_MOCK_MODE`, `NEXT_PUBLIC_LOCAL_GUEST_ACCESS` |
 
-完整模板见 `.env.example`。核心分组：
+---
 
-| 分组 | 变量 |
-| --- | --- |
-| 运行环境 | `ENV`、`DEBUG`、`LOG_LEVEL` |
-| 数据 | `DATABASE_URL`、`REDIS_URL`、`CELERY_*` |
-| 鉴权 | `JWT_SECRET`、`JWT_EXPIRE_HOURS`、`SMS_DEV_MODE`、`SMS_OTP_TTL_SECONDS`、`LOCAL_GUEST_ACCESS` |
-| 实时事件 | `SSE_HEARTBEAT_SECONDS`、`WS_HEARTBEAT_SECONDS`、`CORS_ORIGINS` |
-| 模型 | `LITELLM_URL`、`LITELLM_API_KEY`、`LITELLM_MOCK` |
-| 工具 | `MCP_*_URL` |
-| 对象存储 | `OSS_*` |
-| 前端 | `NEXT_PUBLIC_API_URL`、`NEXT_PUBLIC_MOCK_MODE`、`NEXT_PUBLIC_LOCAL_GUEST_ACCESS` |
+## Database Migrations
 
-`JWT_SECRET`、`SMS_DEV_MODE=true` 和示例基础设施密码只能用于本地开发/测试；安全 CI 会阻止提交 `.env`、疑似真实密钥和高风险生产默认值。
-
-## 数据库迁移
-
-数据库结构只由 Alembic 管理，不在启动时调用 `create_all`。
+Database schema is strictly managed via Alembic:
 
 ```powershell
 Push-Location backend
-..\.venv\Scripts\alembic.exe history
 ..\.venv\Scripts\alembic.exe upgrade head
-..\.venv\Scripts\alembic.exe current
 ..\.venv\Scripts\python.exe scripts/bootstrap-skills.py
 Pop-Location
 ```
 
-后端正常启动也会幂等同步 `backend/skills/playbooks/*.yaml`；CI 在空库 migration 后单独执行 bootstrap 并检查数据库行数，避免迁移成功但 Skill 市场为空。
+---
 
-本次整合新增：
+## API & Streaming Protocol
 
-- `20260721_0005_user_events.py`：持久化可回放用户事件。
-- `20260721_0006_skill_lifecycle.py`：统一 Skill 安装/启停关系。
+- **Conversation Messages**: `GET /api/conversations/{id}/messages`
+- **Post Message**: `POST /api/conversations/{id}/messages`
+- **Real-Time SSE Stream**: `GET /api/conversations/{id}/events`
+- **Skill Marketplace**: `GET /api/skills`, `/api/skills/{id}/install`, `/api/skills/{id}/enable`
+- **Authentication**: `POST /api/auth/sms/send`, `POST /api/auth/login`
 
-## API、事件与类型
+SSE connections use `Authorization: Bearer <jwt>` and include the `Last-Event-ID` header on reconnect. OpenAPI specifications automatically generate frontend types in `frontend/lib/api-types.ts`.
 
-- 消息历史：`GET /api/conversations/{id}/messages`
-- 发送消息：`POST /api/conversations/{id}/messages`
-- 实时事件：`GET /api/conversations/{id}/events`
-- Skill：`GET /api/skills`、详情、`install`、`enable`、`disable`
-- 登录：`POST /api/auth/sms/send`、`POST /api/auth/login`
+---
 
-SSE 请求使用 `Authorization: Bearer <jwt>`，重连时带 `Last-Event-ID`。后端 `EventType` 和 `UserEvent` 通过 OpenAPI 生成到 `frontend/lib/api-types.ts`；`backend/scripts/check-contracts.py` 会阻止手写事件联合类型或契约漂移。
-
-更新 API 类型：
+## Testing & Quality Assurance
 
 ```powershell
-Set-Location frontend
-pnpm gen:api
-```
-
-## 测试与 CI
-
-```powershell
+# Python linting and unit tests
 .\.venv\Scripts\ruff.exe check backend agents
-.\.venv\Scripts\python.exe -m compileall -q backend/app agents/agents agents/mcp_servers
 .\.venv\Scripts\python.exe -m pytest backend/tests -q
 .\.venv\Scripts\python.exe -m pytest agents/tests test/test_agent_task_handlers.py -q
-.\.venv\Scripts\python.exe backend/scripts/check-contracts.py
 
+# Frontend checks and tests
 Set-Location frontend
-pnpm install --frozen-lockfile
 pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
-pnpm test:e2e
 ```
 
-`next dev` 与 `next build` 共用 `.next`。本地服务正在运行时，先执行 `scripts/core.ps1 stop`，完成生产构建后再重新 `start`，避免开发服务器继续引用已被构建过程替换的静态 chunk。
+---
 
-GitHub Actions 将后端、Agent、前端、跨语言契约和安全检查作为阻断式 job。真实模型 smoke test保持显式 opt-in，不是普通 PR 的强制条件。
+## License & Contributing
 
-## 已知限制
-
-- 本地完整栈依赖可用的 Docker 守护进程；缺少 Docker 时仍可运行无外部依赖的单元/契约 E2E 和前端 mock 浏览器测试。
-- 真实模型、阿里云短信、云 OSS 和外部发布渠道未包含公共测试凭据，必须单独验证。
-- SSE 的 durable replay 依赖 PostgreSQL；Redis 不可用时只保证当前进程内订阅者的实时 fallback。
-- `EventBus` 满队列会丢弃最旧事件；客户端应依赖持久化回放恢复短断线数据。
-- Playwright 中真实短视频长链路仍为 opt-in/跳过；CI 的无密钥跨模块链路使用确定性 mock AgentResult。
-
-## 许可证与参与贡献
-
-- 开源许可证：[LICENSE](LICENSE) (MIT License)
-- 第三方归属声明：[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
-- 参与贡献与开发规范：请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)
+- **License**: [LICENSE](LICENSE) (MIT License)
+- **Third-Party Notices**: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+- **Contributing**: Please review [CONTRIBUTING.md](CONTRIBUTING.md)

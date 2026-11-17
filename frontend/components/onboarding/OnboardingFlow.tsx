@@ -1,10 +1,9 @@
 'use client';
 
-// 首次进入流程(对齐 CLAUDE.md §1.1):
-// - 总裁助理 / HR / 财务经理 依次入群(系统提示 + 头像入场动画)
-// - 3 段自介
-// - 模式选择卡片(Plan / Ask / Auto + 简单了解)
-// 不做传统 onboarding tour——用户直接对话上手
+// Onboarding flow:
+// - Executive Assistant / HR Lead / Finance Manager sequentially join session
+// - 3 introduction beats
+// - Interactive mode selector (Plan / Ask / Auto)
 import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { ROLES } from '@/lib/agents';
@@ -20,9 +19,9 @@ const SCRIPT: Step[] = [
   { kind: 'join',  time: '14:00', role: 'ceo_assistant' },
   { kind: 'join',  time: '14:00', role: 'hr' },
   { kind: 'join',  time: '14:00', role: 'finance_manager' },
-  { kind: 'intro', time: '14:01', role: 'ceo_assistant',   text: '你好,我是你的总裁助理,平时帮你协调任务、调度团队。' },
-  { kind: 'intro', time: '14:01', role: 'hr',              text: '我管理你的 AI 团队成员,以后想加新员工或给员工进修,找我。' },
-  { kind: 'intro', time: '14:01', role: 'finance_manager', text: '订阅、配额、账单都归我。预算紧张时我会提醒你。' },
+  { kind: 'intro', time: '14:01', role: 'ceo_assistant',   text: 'Hello! I am your Executive Assistant. I coordinate tasks and orchestrate your autonomous agent team.' },
+  { kind: 'intro', time: '14:01', role: 'hr',              text: 'I manage team capacity and skills. Reach out when you need to activate new playbooks or configure specialized workers.' },
+  { kind: 'intro', time: '14:01', role: 'finance_manager', text: 'I track quotas, subscriptions, and billing to ensure budget efficiency across all workflows.' },
 ];
 
 export function OnboardingFlow() {
@@ -44,7 +43,7 @@ export function OnboardingFlow() {
     createConversation.mutate({
       mode: 'main_session',
       work_mode: target,
-      name: '你的第 1 个专属 AI 团队',
+      name: 'Executive War Room',
     }, {
       onSuccess: (conversation) => {
         upsert(conversation);
@@ -59,10 +58,10 @@ export function OnboardingFlow() {
     <div className="flex h-full w-full flex-col bg-wechat-bg">
       <header className="flex h-14 flex-shrink-0 items-center border-b border-wechat-line bg-white px-4">
         <span className="text-[14px] font-semibold text-wechat-fg">
-          你的第 1 个专属 AI 团队
+          Executive War Room
         </span>
         <span className="ml-2 rounded bg-wechat-green-soft px-1.5 py-0.5 text-[10px] text-wechat-green">
-          主会话
+          Main Session
         </span>
       </header>
 
@@ -79,31 +78,31 @@ export function OnboardingFlow() {
                   className="grid h-7 w-7 place-items-center rounded text-[11px] font-bold text-white"
                   style={{ background: ROLES.ceo_assistant.color }}
                 >
-                  助
+                  EA
                 </span>
                 <span className="text-[13px] text-wechat-fg">
-                  <span className="font-semibold">总裁助理:</span>{' '}
-                  你想以哪种模式开始工作?
+                  <span className="font-semibold">Executive Assistant:</span>{' '}
+                  Which mode would you like to operate in today?
                 </span>
               </div>
 
               <div className="flex flex-wrap gap-2">
                 <ModeButton
                   emoji="💭"
-                  title="讨论模式 Plan"
-                  hint="一起捋思路,不直接动手(不扣任务配额)"
+                  title="Plan Mode"
+                  hint="Brainstorm and structure strategy together (zero quota cost)"
                   onClick={() => pickMode('plan')}
                 />
                 <ModeButton
                   emoji="❓"
-                  title="询问模式 Ask"
-                  hint="只回答问题,不开任务(不扣任务配额)"
+                  title="Ask Mode"
+                  hint="Direct Q&A and research without launching background tasks"
                   onClick={() => pickMode('ask')}
                 />
                 <ModeButton
                   emoji="🚀"
-                  title="自动模式 Auto"
-                  hint="放手让 AI 干活(扣任务配额)"
+                  title="Auto Mode"
+                  hint="Autonomous execution with human approval checkpoints"
                   onClick={() => pickMode('auto')}
                   primary
                 />
@@ -114,14 +113,14 @@ export function OnboardingFlow() {
                 onClick={() => setShowHint((v) => !v)}
                 className="mt-3 text-[11px] text-wechat-sub underline-offset-2 hover:text-wechat-green hover:underline"
               >
-                简单了解每种模式
+                Learn more about operational modes
               </button>
 
               {showHint && (
                 <div className="mt-2 space-y-1 rounded bg-neutral-50 p-2.5 text-[11px] leading-[1.65] text-neutral-600">
-                  <div><b>Plan(讨论)</b>:同群里跟 AI 聊方案、对结构,不直接动手;切到 Auto 才开干。</div>
-                  <div><b>Ask(询问)</b>:只回答你的问题,不创建任务;适合查资料、找思路。</div>
-                  <div><b>Auto(自动)</b>:放手让 AI 干活;Hero 任务有 HITL gate 让你审。</div>
+                  <div><b>Plan</b>: Collaborate with agents to draft briefs and DAGs before kicking off work.</div>
+                  <div><b>Ask</b>: Instant direct queries, citations, and brainstorming without consuming task credits.</div>
+                  <div><b>Auto</b>: Autonomous multi-agent pipeline with HITL review gates for quality approval.</div>
                 </div>
               )}
             </div>
@@ -138,7 +137,7 @@ function Line({ step }: { step: Step }) {
     return (
       <div className="animate-fade-up py-1 text-center">
         <span className="rounded-sm bg-black/5 px-2.5 py-0.5 text-[11px] text-wechat-mute">
-          [{step.time}] {meta.name} 加入群聊
+          [{step.time}] {meta.name} joined the session
         </span>
       </div>
     );

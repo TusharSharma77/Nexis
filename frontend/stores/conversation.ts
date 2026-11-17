@@ -13,15 +13,15 @@ export interface ConversationSummary {
   preview?: string;
   preview_time?: string;
   unread?: number;
-  /** 聚合头像配色(普通群)*/
+  /** Avatar palette colors (standard groups) */
   avatar_colors?: string[];
-  /** 单图头像 */
+  /** Single image avatar */
   avatar_image?: string;
-  /** 单字头像背景 */
+  /** Initial avatar background */
   avatar_bg?: string;
-  /** 单字头像文字 */
+  /** Initial avatar character */
   avatar_text?: string;
-  /** 是否严肃场景(金融/医疗/政务)— 关闭表情 */
+  /** Serious mode (finance/legal/healthcare) - disables emojis */
   serious_mode?: boolean;
 }
 
@@ -67,7 +67,7 @@ interface State {
   list: ConversationSummary[];
   currentId: string | null;
   members: Record<string, AgentMember[]>; // conversation_id → members
-  quoted: Record<string, QuotedRef | null>; // conversation_id → 当前引用
+  quoted: Record<string, QuotedRef | null>; // conversation_id -> active quote
   setList: (list: ConversationSummary[]) => void;
   upsertConversation: (c: ConversationSummary) => void;
   setCurrent: (id: string) => void;
